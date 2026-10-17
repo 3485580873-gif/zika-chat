@@ -1,0 +1,150 @@
+/* ============================================================
+   base.css — 设计变量 + 全局复位 + 外壳
+   风格：iOS / iMessage（蓝气泡 · 灰气泡 · 毛玻璃 · 发丝线）
+   ============================================================ */
+
+:root{
+    /* 背景与面 */
+    --bg:#ffffff;
+    --bg-2:#f2f2f7;
+    --surface:#f9f9f9;                    /* 顶栏/底栏：不透明纯色，不磨砂 */
+    --surface-solid:#f9f9f9;
+    --surface-2:#f2f2f7;
+    --surface-3:#e5e5ea;
+    --field:#f2f2f7;                       /* 输入框底 */
+
+    /* 磨砂清透（设置页用）：半透明 + backdrop-filter 透出底图 */
+    --glass:rgba(255,255,255,.60);
+    --glass-strong:rgba(255,255,255,.80);
+    /* 设置页背后的柔光渐变，让磨砂玻璃有东西可糊 */
+    --glass-bg:linear-gradient(160deg,#fdeef3 0%,#e9f1fa 48%,#eef6ef 100%);
+
+    /* 文字 */
+    --ink:#000000;
+    --ink-2:#3c3c43;
+    --muted:#8e8e93;
+    --faint:#c7c7cc;
+
+    /* 发丝线 */
+    --line:rgba(60,60,67,.18);
+    --line-2:rgba(60,60,67,.10);
+
+    /* 气泡：我方蓝 · 对方灰 */
+    --me-bg:linear-gradient(178deg,#0a84ff 0%,#007aff 96%);
+    --me-tail:#007aff;                     /* 尾巴用纯色（渐变无法做尾巴） */
+    --me-fg:#ffffff;
+    --ta-bg:#e9e9eb;
+    --ta-fg:#000000;
+
+    /* 强调（iOS 蓝） */
+    --accent:#007aff;
+    --accent-fg:#ffffff;
+    --danger:#ff3b30;
+
+    /* 形状 */
+    --r:20px;                /* 气泡圆角 */
+    --r-sm:12px;
+    --r-lg:24px;
+    --pill:99px;
+
+    /* 环境 */
+    --safe-t:env(safe-area-inset-top,0px);
+    --safe-b:env(safe-area-inset-bottom,0px);
+    --kb:0px;
+
+    /* 聊天背景（设置后全屏铺满） */
+    --chat-bg-image:none;
+    --chat-bg-color:var(--bg);
+}
+
+html[data-theme="dark"]{
+    --bg:#000000;
+    --bg-2:#1c1c1e;
+    --surface:#1c1c1e;
+    --surface-solid:#1c1c1e;
+    --surface-2:#1c1c1e;
+    --surface-3:#2c2c2e;
+    --field:#1c1c1e;
+
+    --glass:rgba(28,28,30,.52);
+    --glass-strong:rgba(28,28,30,.74);
+    --glass-bg:linear-gradient(160deg,#241a22 0%,#161d27 48%,#18241d 100%);
+
+    --ink:#ffffff;
+    --ink-2:#ebebf5;
+    --muted:#8e8e93;
+    --faint:#636366;
+
+    --line:rgba(84,84,88,.55);
+    --line-2:rgba(84,84,88,.30);
+
+    --me-bg:linear-gradient(178deg,#0b84ff 0%,#007aff 96%);
+    --me-tail:#0b84ff;
+    --me-fg:#ffffff;
+    --ta-bg:#262229;
+    --ta-fg:#ffffff;
+
+    --accent:#0a84ff;
+}
+
+*,*::before,*::after{
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+}
+
+/* iOS 主屏（standalone）外壳：
+   绝不用 100vh / 100dvh —— 会随可视区和安全区跳动，
+   表现为「整页上移、顶部钻进状态栏、底部一条白」。 */
+html,body{
+    height:100%!important;
+    margin:0;
+    padding:0;
+    overflow:hidden;
+    overscroll-behavior:none;
+    background:var(--bg);
+}
+body{
+    position:fixed!important;
+    inset:0;
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",
+                "Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+    font-size:15px;
+    line-height:1.5;
+    color:var(--ink);
+    -webkit-font-smoothing:antialiased;
+    -webkit-text-size-adjust:100%;
+}
+
+/* 触屏上输入类字号必须 ≥16px，
+   否则 iOS 聚焦时会强制放大整页，主屏下收起键盘后偏移残留。 */
+@media (pointer:coarse){
+    input,textarea{font-size:16px}
+}
+
+button{font-family:inherit;color:inherit;background:none;border:none;padding:0;cursor:pointer}
+input,textarea{font-family:inherit;color:inherit;background:none;border:none;outline:none}
+img{display:block;max-width:100%}
+
+.ico{display:inline-block;vertical-align:middle;flex:none}
+.ico-fill{stroke:none}
+
+/* 头像：全站唯一类名，所有界面共用同一个渲染 */
+.avatar{
+    display:inline-block;
+    flex:none;
+    width:38px;
+    height:38px;
+    border-radius:var(--pill);
+    background-color:var(--surface-3);
+    background-size:cover;
+    background-position:center;
+}
+.avatar.sm{width:28px;height:28px}
+.avatar.lg{width:56px;height:56px}
+
+#stage{position:absolute;inset:0;overflow:hidden}
+
+/* iOS 发丝线 */
+.hairline{border-bottom:1px solid var(--line-2)}
+
+::-webkit-scrollbar{width:0;height:0}

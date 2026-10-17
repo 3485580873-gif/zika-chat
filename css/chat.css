@@ -1,0 +1,1097 @@
+/* ============================================================
+   chat.css — 聊天页（iMessage 语汇）
+   顶栏：返回 · 头像+名字 · 三点设置
+   底部：语音 · 输入框 · 表情 · 收纳 · 发送
+   气泡：我方蓝（带尾巴靠右）· 对方灰（带尾巴靠左）
+
+   可调变量（全部由 core/settings.js 写到 :root）：
+     --bar-alpha / --bar-blur  顶栏底栏磨砂强度
+     --avatar-radius           头像形状
+     --frame-size / --frame-me / --frame-ta   头像框
+     --msg-font-size / --msg-font-family / --msg-text-color
+   ============================================================ */
+
+/* ---------- 背景：铺满整个聊天页（顶栏底栏半透明，透出背景） ---------- */
+.page[data-page="chat"]{
+    background-color:var(--chat-bg-color, var(--bg));
+    background-image:var(--chat-bg-image, none);
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+}
+/* 有背景图时：顶栏是悬浮玻璃件（自带白底），不再需要通栏变透明的旧规则。
+   输入条同样是白色玻璃药丸，浅色/深色背景都可读。 */
+/* 顶栏中间是纯展示，点了不跳转 */
+.bar-mid.static:active{opacity:1}
+
+/* ---------- 消息区 ---------- */
+.chat-body{
+    flex:1;
+    min-height:0;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+    padding:14px 12px 18px;
+    background:transparent;
+}
+.chat-msgs{display:flex;flex-direction:column}
+.chat-loadmore{
+    align-self:center;
+    margin:8px auto 12px;
+    padding:7px 16px;
+    border:none;
+    border-radius:99px;
+    background:var(--surface-soft,rgba(0,0,0,.06));
+    color:var(--muted,#8a8a8a);
+    font-size:13px;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+}
+.chat-loadmore:active{opacity:.6}
+
+/* ---------- 消息行 ---------- */
+.msg{
+    display:flex;
+    align-items:flex-end;
+    gap:7px;
+    /* ★ 气泡间距加大（用户 2026-10-17：现在太紧了） */
+    padding:5px 0;
+    margin-bottom:5px;
+}
+.msg + .msg{margin-top:6px}
+.msg.me + .msg.ta,
+.msg.ta + .msg.me{margin-top:14px}
+.msg.me{flex-direction:row-reverse}
+
+/* 头像列：头像 + 时间戳（时间戳位置由 body.cs-time-* 控制） */
+.msg-side{
+    flex:none;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+}
+/* 占位（不显示头像时也要把位置留出来，气泡才不会左右跳） */
+.msg-side.blank{width:var(--chat-avatar-size,38px)}
+/* 关了「显示聊天头像」时整列收掉，气泡贴边 */
+.no-chat-av .msg-side.blank{width:0}
+/* 聊天界面头像大小（与头像框分开，由 --chat-avatar-size 控制） */
+.msg .avatar{width:var(--chat-avatar-size,38px);height:var(--chat-avatar-size,38px)}
+.msg-main{
+    display:flex;
+    flex-direction:column;
+    max-width:min(72%, 280px);
+    min-width:0;
+}
+.msg.me .msg-main{align-items:flex-end}
+.msg-who{
+    font-size:11.5px;
+    color:var(--muted);
+    margin:0 0 3px 3px;
+}
+.msg .msg-time{
+    font-size:10px;
+    line-height:1.15;
+    color:var(--muted);
+    white-space:nowrap;
+    letter-spacing:-.1px;
+    opacity:.85;
+}
+
+/* ---------- 气泡（无尾巴，纯圆角气泡） ---------- */
+.bubble{
+    position:relative;
+    padding:8px 13px;
+    border-radius:var(--r);
+    font-size:var(--msg-font-size,16px);
+    font-family:var(--msg-font-family,inherit);
+    color:var(--msg-ta-text,var(--ta-fg));
+    line-height:1.36;
+    letter-spacing:-.1px;
+    word-break:break-word;
+    overflow-wrap:anywhere;
+    background:var(--bubble-ta,var(--ta-bg));
+}
+.msg.me .bubble{
+    background:var(--bubble-me,var(--me-bg));
+    /* 字色变量为空时回落到主题里「我方气泡」的前景色 */
+    color:var(--msg-me-text,var(--me-fg));
+}
+/* 用户自定义气泡 CSS 里的 ::after / ::before 由用户自己定义，这里不占用 */
+
+/* 撤回后：居中灰字 */
+.bubble.gone{
+    background:transparent;
+    padding:3px 8px;
+    text-align:center;
+}
+.msg.me .bubble.gone{background:transparent}
+.bubble.gone span{
+    font-size:11.5px;
+    color:var(--muted);
+    opacity:.75;
+}
+/* 撤回气泡可点：点一下在气泡内展开原文/原图，再点收回（用户 2026-10-17 拍板）
+   —— 不再挂「查看」标签，整段内容都在这一个气泡里 */
+.bubble.gone{
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+    transition:opacity .15s ease;
+}
+.bubble.gone:active{opacity:.55}
+.gone-tag{
+    display:inline-block;
+    margin-top:5px;
+    padding:1px 6px;
+    border-radius:99px;
+    font-size:10px;
+    font-style:normal;
+    line-height:1.5;
+    color:var(--faint);
+    background:rgba(140,140,150,.14);
+    vertical-align:1px;
+}
+/* 展开态：灰气泡里显示原文（★ 不再删除线 —— 用户要「点开是什么就是什么」） */
+.bubble.gone.open{
+    text-align:left;
+    max-width:min(74%,260px);
+    background:rgba(140,140,150,.15);
+}
+.msg.me .bubble.gone.open{background:rgba(140,140,150,.18)}
+.bubble.gone.open .gone-text{
+    display:block;
+    font-size:15px;
+    line-height:1.42;
+    color:var(--ink);
+    opacity:1;
+    word-break:break-word;
+    white-space:pre-wrap;
+}
+.bubble.gone.open .gone-pic{
+    display:block;
+    margin-top:6px;
+    max-width:100%;
+}
+.bubble.gone.open .gone-pic img{
+    display:block;
+    max-width:100%;
+    max-height:220px;
+    border-radius:10px;
+    object-fit:contain;
+}
+.bubble.gone.open .gone-pic.stk img{max-height:160px}
+.bubble.gone.open .gone-tag{
+    margin:5px 0 0;
+    background:transparent;
+    color:var(--faint);
+    font-size:10.5px;
+}
+
+/* 引用（气泡里的原消息摘要） */
+/* ---------- 引用（气泡外上方，用户 2026-10-17 拍板：引用在上、气泡在下） ---------- */
+.msg-quote-out{
+    display:flex;
+    flex-direction:column;
+    gap:1px;
+    max-width:min(72%,240px);
+    margin-bottom:4px;
+    padding:5px 10px;
+    border-radius:12px 12px 12px 4px;
+    background:rgba(140,140,150,.13);
+    border-left:2.5px solid rgba(120,120,128,.42);
+    font-size:12px;
+    line-height:1.35;
+    color:var(--muted);
+    text-align:left;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+    transition:opacity .15s ease;
+}
+.msg.me .msg-quote-out{
+    border-radius:12px 12px 4px 12px;
+    border-left:none;
+    border-right:2.5px solid rgba(120,120,128,.42);
+}
+.msg-quote-out:active{opacity:.55}
+.msg-quote-out b{
+    font-weight:600;
+    font-size:11px;
+    color:var(--faint);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    max-width:100%;
+}
+.msg-quote-out span{
+    display:block;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    max-width:100%;
+}
+.msg-text{display:block}
+
+/* ---------- 禁系统长按菜单：只弹我们自己的菜单 ---------- */
+.chat-msgs,
+.chat-msgs *{
+    -webkit-touch-callout:none;      /* iOS 长按弹「复制/保存图片」的元凶 */
+    -webkit-user-select:none;
+    user-select:none;
+}
+/* 输入类要能选中复制，不受上面影响 */
+.composer, .composer *, .cs-nameinput, .cs-ta, .ck-ta{
+    -webkit-touch-callout:default;
+    -webkit-user-select:text;
+    user-select:text;
+}
+
+/* ---------- 图片消息：气泡不包裹（无底色无内边距），图片自己圆角 ---------- */
+.bubble.img{
+    background:transparent !important;
+    padding:0;
+    margin:0;
+    border:none;
+    box-shadow:none !important;
+    overflow:visible;
+    line-height:0;
+    max-width:none;
+}
+.bubble.img::before, .bubble.img::after{display:none !important}
+.bubble.img img{
+    display:block;
+    border-radius:12px;
+    max-width:150px;          /* 图片收小，别霸占整屏 */
+    max-height:200px;
+    width:auto;
+    height:auto;
+    cursor:pointer;
+}
+/* 表情包再收小一号（微信表情包就这个大小） */
+.bubble.img.stk img{max-width:96px;max-height:96px;border-radius:8px}
+
+/* 系统提示（拍一拍 / 撤回提示等）：微信式居中灰字，不用气泡 */
+.msg.sys{justify-content:center;padding:5px 0}
+.msg.sys .msg-sys{
+    font-size:11.5px;
+    line-height:1.3;
+    color:var(--muted);
+    background:rgba(120,120,128,.14);
+    border-radius:var(--pill);
+    padding:4px 12px;
+    max-width:82%;
+    text-align:center;
+    word-break:break-word;
+}
+body.cs-time-divider .msg.sys .msg-time,
+.msg.sys .msg-time{display:none}
+
+/* ---------- 已读回执 ---------- */
+.msg-read{
+    font-size:10.5px;
+    line-height:1;
+    color:var(--muted);
+    padding:3px 4px 0;
+    opacity:.6;
+}
+.msg-read.on{opacity:.85}
+.msg-read .tick,
+.msg-read .tick.dbl{
+    display:inline-block;
+    position:relative;
+    width:15px;
+    height:10px;
+}
+/* 单个勾 */
+.msg-read .tick::before{
+    content:'';
+    position:absolute;
+    left:1px;top:1px;
+    width:5px;height:9px;
+    border-right:1.6px solid currentColor;
+    border-bottom:1.6px solid currentColor;
+    transform:rotate(40deg);
+}
+/* 双勾 */
+.msg-read .tick.dbl::after{
+    content:'';
+    position:absolute;
+    left:7px;top:1px;
+    width:5px;height:9px;
+    border-right:1.6px solid currentColor;
+    border-bottom:1.6px solid currentColor;
+    transform:rotate(40deg);
+}
+
+/* ---------- 时间戳：mochi 七种样式（body 上挂 cs-time-* 类） ---------- */
+
+/* ① 头像下方（默认，即上面的 .msg-side 竖排） */
+
+/* ② 气泡下方：时间从头像列挪到气泡下沿 */
+body.cs-time-under-bubble .msg-side{position:relative}
+body.cs-time-under-bubble .msg .msg-time{
+    position:absolute;
+    top:calc(100% + 3px);
+    padding:2px 7px;
+    border-radius:9px;
+    background:rgba(120,120,128,.16);
+    z-index:2;
+}
+body.cs-time-under-bubble .msg.ta .msg-side .msg-time{right:0}
+body.cs-time-under-bubble .msg.me .msg-side .msg-time{left:0}
+
+/* ③ 时间气泡：头像与时间并排，时间贴近气泡一侧 */
+body.cs-time-bubble .msg-side{flex-direction:row;gap:6px}
+body.cs-time-bubble .msg.me .msg-side{flex-direction:row-reverse}
+body.cs-time-bubble .msg .msg-time{
+    padding:3px 7px;
+    border-radius:9px;
+    background:rgba(120,120,128,.16);
+}
+
+/* ④ 气泡外侧悬浮：小胶囊浮在气泡外侧上角 */
+body.cs-time-float .msg-side{position:relative}
+body.cs-time-float .msg .msg-time{
+    position:absolute;
+    top:-3px;
+    padding:2px 7px;
+    border-radius:9px;
+    background:rgba(120,120,128,.18);
+    z-index:2;
+}
+body.cs-time-float .msg.ta .msg-side .msg-time{right:-2px}
+body.cs-time-float .msg.me .msg-side .msg-time{left:-2px}
+
+/* ⑤ 消息上方居中 */
+body.cs-time-center .msg{position:relative;padding-top:17px}
+body.cs-time-center .msg .msg-time{
+    position:absolute;
+    top:0;
+    left:50%;
+    transform:translateX(-50%);
+    padding:2px 9px;
+    border-radius:9px;
+    background:rgba(120,120,128,.14);
+}
+
+/* ⑥ 时间分隔线：每条消息自己的时间隐藏，改由分隔条显示 */
+.msg-time-divider{
+    display:none;
+    justify-content:center;
+    margin:12px 0 8px;
+}
+body.cs-time-divider .msg-time-divider{display:flex}
+body.cs-time-divider .msg .msg-time{display:none}
+.msg-time-divider span{
+    padding:3px 10px;
+    border-radius:var(--pill);
+    background:rgba(120,120,128,.16);
+    font-size:10.5px;
+    line-height:1;
+    color:var(--muted);
+    letter-spacing:.2px;
+}
+
+/* ⑦ 隐藏 */
+body.cs-time-hidden .msg .msg-time{display:none}
+
+/* 有自定义背景时，时间戳胶囊加一层可读性 */
+.chat-body.has-bg .msg .msg-time,
+.chat-body.has-bg .msg-time-divider span{
+    background:rgba(20,20,22,.34);
+    color:rgba(255,255,255,.88);
+}
+.chat-body.has-bg .msg-who,
+.chat-body.has-bg .msg-read{color:rgba(255,255,255,.75)}
+
+/* ---------- 正在输入 ---------- */
+.dots{display:flex;align-items:center;gap:5px;padding:11px 14px}
+.dots i{
+    width:7px;height:7px;
+    border-radius:50%;
+    background:var(--muted);
+    animation:zdot 1.25s infinite;
+}
+.dots i:nth-child(2){animation-delay:.18s}
+.dots i:nth-child(3){animation-delay:.36s}
+@keyframes zdot{0%,60%,100%{opacity:.26;transform:scale(.86)}30%{opacity:1;transform:scale(1)}}
+
+/* ---------- 空状态 ---------- */
+.chat-empty{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+    padding:84px 30px;
+    text-align:center;
+    color:var(--muted);
+}
+.chat-empty .ico{color:var(--faint)}
+.chat-empty p{margin:0;font-size:16px;font-weight:600;color:var(--ink)}
+.chat-empty span{font-size:13.5px;line-height:1.6}
+
+/* ---------- 引用条（输入框上方） ---------- */
+.quote-bar{
+    flex:none;
+    display:flex;
+    align-items:center;
+    gap:9px;
+    padding:8px 12px;
+    background:var(--surface);
+    border-top:1px solid var(--line-2);
+}
+.quote-bar[hidden]{display:none}
+.quote-line{
+    width:3px;
+    height:26px;
+    flex:none;
+    border-radius:2px;
+    background:var(--accent);
+}
+.quote-txt{flex:1;min-width:0}
+.quote-txt b{
+    display:block;
+    font-size:12px;
+    color:var(--accent);
+    margin-bottom:1px;
+}
+.quote-txt span{
+    display:block;
+    font-size:12.5px;
+    color:var(--muted);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+.quote-x{
+    width:28px;height:28px;flex:none;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:var(--pill);
+    color:var(--muted);
+}
+.quote-x:active{background:var(--surface-3)}
+
+/* ---------- 底部栏（图二式悬浮玻璃）
+   整条透明，元素各自是悬浮的白色磨砂件：
+   ＋ 玻璃圆钮 · 药丸输入条（内含 smile 和 ↑ 圆钮） ---------- */
+.composer{
+    flex:none;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:8px 12px calc(var(--safe-b) + 10px);
+    background:transparent;
+    border-top:none;
+    box-shadow:none;
+}
+/* 玻璃圆钮（顶栏/底栏通用） */
+.fl-btn{
+    flex:none;
+    width:42px;height:42px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:var(--pill);
+    background:rgba(255,255,255,.66);
+    -webkit-backdrop-filter:blur(24px) saturate(180%);
+    backdrop-filter:blur(24px) saturate(180%);
+    border:1px solid rgba(255,255,255,.85);
+    box-shadow:0 4px 16px rgba(15,23,42,.10), inset 0 1px 0 rgba(255,255,255,.95);
+    color:var(--ink-2);
+    transition:transform .14s ease;
+}
+.fl-btn:active{transform:scale(.92)}
+.fl-btn.on{color:var(--accent)}
+html[data-theme="dark"] .fl-btn{
+    background:rgba(40,40,44,.62);
+    border-color:rgba(255,255,255,.16);
+    box-shadow:0 4px 16px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.12);
+    color:var(--ink-2);
+}
+/* 药丸输入条：白色磨砂胶囊，立体感来自高光+外阴影 */
+.cp-pillwrap{
+    flex:1;
+    min-width:0;
+    display:flex;
+    align-items:center;
+    gap:2px;
+    padding:5px 5px 5px 14px;
+    border-radius:26px;
+    background:rgba(255,255,255,.62);
+    -webkit-backdrop-filter:blur(28px) saturate(190%);
+    backdrop-filter:blur(28px) saturate(190%);
+    border:1px solid rgba(255,255,255,.9);
+    box-shadow:
+        0 6px 22px rgba(15,23,42,.10),
+        inset 0 1px 0 rgba(255,255,255,.95);
+}
+html[data-theme="dark"] .cp-pillwrap{
+    background:rgba(40,40,44,.62);
+    border-color:rgba(255,255,255,.16);
+    box-shadow:0 6px 22px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.12);
+}
+.cp-side{
+    width:32px;
+    height:32px;
+    flex:none;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:var(--pill);
+    color:var(--muted);
+    transition:opacity .15s ease,transform .15s ease;
+}
+/* 底栏图标：药丸在白玻璃上，统一灰调，选中态用主色 */
+.cp-side{color:var(--muted)}
+.cp-send{
+    width:33px;height:33px;flex:none;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:var(--pill);
+    background:rgba(255,255,255,.9);
+    border:1px solid var(--line-2);
+    color:var(--muted);
+    transition:opacity .15s ease,transform .15s ease,background .15s ease;
+}
+.cp-send:not(.off){background:var(--accent);border-color:transparent;color:var(--on-accent,#fff)}
+.cp-send.off{opacity:.45;pointer-events:none}
+.cp-side[hidden]{display:none}
+.cp-side:active{opacity:.45}
+.cp-side.on{color:var(--accent)}
+
+.cp-input{
+    flex:1;
+    min-width:0;
+    min-height:33px;
+    max-height:100px;
+    padding:6px 4px;
+    border:none;
+    border-radius:0;
+    background:transparent;
+    font-size:16px;
+    line-height:1.4;
+    letter-spacing:-.1px;
+    resize:none;
+}
+.cp-input::placeholder{color:var(--muted)}
+
+.cp-send:active{transform:scale(.9)}
+.cp-side:active,.cp-send:active{opacity:.5;transform:scale(.9)}
+
+/* ---------- 工具抽屉（收纳键展开） ---------- */
+.chat-panel[hidden]{display:none}
+/* 抽屉在输入框下方：从底部往上长出来，不覆盖上方气泡 */
+.chat-panel{
+    flex:none;
+    height:44vh;
+    min-height:260px;
+    max-height:380px;
+    display:flex;
+    flex-direction:column;
+    background:var(--surface-solid);
+    border-top:1px solid var(--line-2);
+    box-shadow:0 -6px 20px rgba(0,0,0,.10);
+    opacity:0;
+    transform:translateY(-14px);
+    transition:opacity .16s ease,transform .2s cubic-bezier(.32,.72,0,1);
+}
+.chat-panel.in{opacity:1;transform:none}
+
+/* 抽屉里「可滚动的一段」：头部固定在上、添加条固定在下 */
+.cp-scroll{
+    flex:1;
+    min-height:0;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+}
+.cp-scroll .cp-list{flex:none;overflow:visible;padding-bottom:14px}
+.cp-scroll .cp-empty{flex:none;padding:24px 26px 28px}
+.cp-scroll .cp-tools{border-bottom:none;padding-bottom:6px}
+
+.cp-head{
+    flex:none;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px 14px 8px;
+}
+.cp-title{font-size:13px;font-weight:600;color:var(--muted)}
+
+.cp-list{
+    flex:1;
+    min-height:0;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+    padding:0 10px 8px;
+}
+
+/* ---------- 工具栅格（收纳键） ---------- */
+.cp-tools{
+    flex:none;
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:8px 4px;
+    padding:2px 10px 10px;
+    border-bottom:1px solid var(--line-2);
+}
+.cp-tool{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:5px;
+    padding:6px 2px;
+    border-radius:var(--r-sm);
+}
+.cp-tool:active{background:var(--surface-2)}
+.cp-tool-ico{
+    width:42px;
+    height:42px;
+    border-radius:var(--pill);
+    background:var(--surface-2);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--ink);
+    font-style:normal;
+}
+.cp-tool span{
+    font-size:11.5px;
+    color:var(--ink-2);
+    line-height:1.2;
+    text-align:center;
+}
+
+.cp-empty{
+    flex:1;
+    display:flex;flex-direction:column;
+    align-items:center;justify-content:center;
+    gap:4px;
+    padding:24px 26px;
+    text-align:center;
+    font-size:13.5px;
+    color:var(--muted);
+    line-height:1.65;
+}
+.cp-empty span{font-size:12px;color:var(--faint)}
+
+/* ---------- 抽屉底部添加区（确认 / 取消） ---------- */
+.cp-add{
+    flex:none;
+    display:flex;
+    gap:8px;
+    align-items:center;
+    padding:8px 10px 10px;
+    border-top:1px solid var(--line-2);
+}
+.cp-add.col{flex-direction:column;align-items:stretch;gap:7px}
+.cp-addinput{
+    flex:1;min-width:0;
+    height:34px;
+    padding:6px 12px;
+    border-radius:12px;
+    background:var(--field);
+    font-size:14px;     /* 触屏端必须 ≥16px？——这里是「附加输入」不是主输入框，
+                           聚焦缩放只影响它自己，保持紧凑 */
+    line-height:1.4;
+}
+/* 就地添加只占一行，别把抽屉内容顶掉（之前 min-height:56px + 两行按钮占掉大半屏） */
+.cp-add.col .cp-addinput{
+    height:34px;
+    min-height:34px;
+    max-height:34px;
+    resize:none;
+    padding:6px 12px;
+}
+.cp-add.col{padding:6px 10px 8px;gap:6px}
+.cp-addbtns{display:flex;gap:6px;justify-content:flex-end;align-items:center}
+/* 底部提示语让位给右侧按钮组 */
+.cp-add .cp-sendasnote{flex:1;min-width:0;font-size:11.5px;color:var(--muted)}
+.cp-addbtn.danger{background:var(--danger);color:#fff}
+.cp-addbtn.danger.on{background:var(--danger);color:#fff}
+.cp-addbtn{
+    height:30px;
+    padding:0 13px;
+    border-radius:var(--pill);
+    background:var(--accent);
+    color:#fff;
+    font-size:13.5px;
+    font-weight:500;
+    flex:none;
+}
+.cp-addbtn.ghost{background:var(--surface-3);color:var(--text)}
+.cp-addbtn:active{opacity:.75}
+
+/* 抽屉底部提示 */
+.cp-hint{
+    flex:1;
+    font-size:11.5px;
+    color:var(--muted);
+    align-self:center;
+}
+
+/* ---------- 表情包抽屉 ---------- */
+.cp-list.sticker{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:8px;
+    padding:10px 12px 14px;
+}
+.cp-stk{
+    aspect-ratio:1;
+    border:0;
+    background:var(--surface-3);
+    border-radius:12px;
+    overflow:hidden;
+    padding:4px;
+    cursor:pointer;
+}
+.cp-stk img{width:100%;height:100%;object-fit:contain;display:block}
+.cp-stk:active{transform:scale(.94)}
+
+/* ★ 添加表情包：网格第一格的虚线加号框（用户 2026-10-17，图六） */
+.cp-stk.add-tile{
+    background:transparent;
+    border:1.5px dashed var(--faint);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--muted);
+}
+.cp-stk.add-tile:active{background:var(--surface-3);transform:scale(.94)}
+.cp-stk.add-tile .add-plus{display:flex;align-items:center;justify-content:center}
+
+/* ★ 管理模式：每张右上角浮出 ❌（图七），点 ❌ 即删 */
+.cp-list.sticker.manage .cp-stk{position:relative}
+.cp-stk .cp-stk-del{
+    position:absolute;top:-5px;right:-5px;
+    width:22px;height:22px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:99px;
+    background:rgba(20,20,24,.88);
+    color:#fff;
+    border:1.5px solid rgba(255,255,255,.9);
+    box-shadow:0 2px 8px rgba(0,0,0,.28);
+    z-index:2;
+}
+.cp-stk .cp-stk-del:active{background:var(--danger)}
+/* 管理模式下点表情本身不发送（JS 里也拦了一道） */
+.cp-list.sticker.manage .cp-stk:not(.add-tile):active{transform:none;opacity:.85}
+/* 空分组提示 */
+.cp-stkempty{
+    margin:0;padding:22px 26px 26px;
+    font-size:13px;color:var(--muted);text-align:center;line-height:1.6;
+}
+.cp-stkempty span{font-size:11.5px;color:var(--faint)}
+
+/* 表情包分组标签（mochi 式：横排可滑，点哪个看哪个） */
+.cp-stkbar{
+    flex:none;
+    display:flex;
+    gap:7px;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior-x:contain;
+    scrollbar-width:none;
+    padding:8px 12px;
+    background:var(--surface);
+    border-bottom:1px solid var(--line);
+}
+.cp-stkbar::-webkit-scrollbar{display:none}
+.cp-stkchip{
+    flex:none;
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    border:1px solid var(--line-2);
+    background:var(--surface-2);
+    color:var(--text);
+    font-size:12.5px;
+    font-weight:500;
+    padding:5px 11px;
+    border-radius:99px;
+    cursor:pointer;
+    white-space:nowrap;
+}
+.cp-stkchip em{font-style:normal;font-size:10.5px;color:var(--muted)}
+.cp-stkchip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.cp-stkchip.on em{color:rgba(255,255,255,.85)}
+.cp-stkchip:active{opacity:.72}
+/* 图标式分组芯片（心形=我上传的 / 分组首图 / 上传+） */
+.cp-stkchip.ico{
+    flex-direction:column;gap:3px;padding:5px 9px;border-radius:14px;
+}
+.cp-stkchip.ico i{
+    width:34px;height:34px;border-radius:10px;overflow:hidden;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--surface-3);color:var(--muted);
+}
+.cp-stkchip.ico i img{width:100%;height:100%;object-fit:cover;display:block}
+.cp-stkchip.ico span{font-size:10.5px;max-width:56px;overflow:hidden;text-overflow:ellipsis}
+.cp-stkchip.ico.on{background:transparent;border-color:var(--accent)}
+.cp-stkchip.ico.on i{background:var(--accent);color:#fff}
+.cp-stkchip.ico.on span{color:var(--accent);font-weight:600}
+.cp-stkchip.ico.off{opacity:.45}
+.cp-stkchip.ico.add i{border-style:dashed;background:transparent}
+/* 发送身份切换（表情包面板底部） */
+/* 表情包抽屉底部：不再有「发送身份」切换，只留一行说明（2026-10-17） */
+.cp-sendasnote{
+    flex:1;min-width:0;
+    font-size:11.5px;
+    color:var(--muted);
+    align-self:center;
+}
+.cp-sendas{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.cp-sendasbtn{
+    border:1px solid var(--line-2);background:var(--surface-2);color:var(--text);
+    font-size:12px;padding:4px 12px;border-radius:99px;cursor:pointer;
+}
+.cp-sendasbtn.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+
+/* ---------- 互动抽屉 ---------- */
+.cp-list.chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:7px;
+    padding:10px 12px 14px;
+}
+.cp-chip{
+    border:0;
+    background:var(--surface-3);
+    color:var(--text);
+    font-size:14px;
+    padding:8px 14px;
+    border-radius:99px;
+    cursor:pointer;
+}
+.cp-chip:active{background:var(--accent);color:#fff}
+
+/* ---------- 消息操作菜单（长按 / 右键） ---------- */
+.msg-menu[hidden]{display:none}
+/* ★ 菜单必须 fixed 到**视口**，不能被任何祖先的 transform 带偏：
+   祖先一旦带 transform 就会成为 fixed 后代的包含块，而 openMenu() 是用
+   getBoundingClientRect()（视口坐标）算 left/top 的 —— 坐标对不上，菜单就飘到别处，
+   用户按下去点在空气上 = 「点了没反应」。
+   解法：菜单节点挂到 body（JS 里已做），且 .page 不用 transform 位移（v27 起），
+   这里只保证它自己层级够高。 */
+.msg-menu{
+    position:fixed;
+    z-index:9400;
+    display:flex;
+    flex-direction:column;
+    min-width:132px;
+    padding:5px;
+    border-radius:14px;
+    background:var(--surface-solid);
+    border:1px solid var(--line-2);
+    box-shadow:0 10px 34px rgba(0,0,0,.24);
+}
+.mm-btn{
+    display:flex;
+    align-items:center;
+    gap:9px;
+    width:100%;
+    border:0;
+    background:transparent;
+    color:var(--text);
+    font-size:14.5px;
+    padding:9px 12px;
+    border-radius:10px;
+    text-align:left;
+}
+.mm-btn:active{background:var(--surface-3)}
+.mm-btn.danger{color:#ff3b30}
+.mm-btn .ico{flex:none;opacity:.8}
+
+/* ============================================================
+   追加：样式设置落地点（变量全部由 Settings 写入）
+   ============================================================ */
+
+/* ---------- 头像形状 ---------- */
+.msg .avatar,
+.bar-mid .avatar{
+    position:relative;
+    border-radius:var(--avatar-radius,50%);
+    background-size:cover;
+}
+
+/* ---------- 头像框：只叠在聊天消息的气泡头像上 ----------
+   ★ 顶栏头像不显示框（用户要求）；预览框也不显示（在 settings.css 关掉）。
+   我方与对方各一套尺寸/位置：--frame-size-me / -ta，--frame-x/y-me / -ta。 */
+.msg .avatar::after{
+    content:'';
+    position:absolute;
+    left:50%;
+    top:50%;
+    width:var(--frame-size-ta,30px);
+    height:var(--frame-size-ta,30px);
+    transform:translate(calc(-50% + var(--frame-x-ta,0px)), calc(-50% + var(--frame-y-ta,0px)));
+    background-repeat:no-repeat;
+    background-position:center;
+    background-size:100% 100%;
+    pointer-events:none;
+    z-index:2;
+}
+.msg.me .avatar::after{
+    width:var(--frame-size-me,30px);
+    height:var(--frame-size-me,30px);
+    transform:translate(calc(-50% + var(--frame-x-me,0px)), calc(-50% + var(--frame-y-me,0px)));
+    background-image:var(--frame-me,none);
+}
+.msg.ta .avatar::after{background-image:var(--frame-ta,none)}
+/* 顶栏头像：不要框 */
+.bar-mid .avatar::after{display:none !important}
+
+/* ---------- 免打扰标记 ---------- */
+.bar-mute{display:inline-flex;color:var(--muted);margin-left:4px}
+
+/* ============================================================
+   v24 — 图二式悬浮玻璃聊天页
+   ============================================================ */
+
+/* ---------- 顶栏：悬浮件，不是通栏 ---------- */
+.chat-top{
+    flex:none;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:calc(var(--safe-t) + 10px) 12px 8px;
+    background:transparent;
+}
+.chat-topmid{
+    flex:1;
+    min-width:0;
+    display:flex;
+    flex-direction:row;      /* ★ 改成横排：头像 + 名字（用户要求，不要在线状态） */
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+}
+.chat-topav{
+    flex:none;
+    width:30px;height:30px;
+    border-radius:var(--pill);
+    background-color:var(--surface-3);
+    background-size:cover;
+    background-position:center;
+    box-shadow:0 2px 8px rgba(15,23,42,.12);
+}
+.chat-topmute{
+    flex:none;
+    display:inline-flex;
+    color:var(--muted);
+}
+.chat-topnm{
+    font-size:16px;
+    font-weight:700;
+    letter-spacing:-.2px;
+    color:var(--ink);
+    max-width:46%;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+.chat-topsub{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    font-size:11px;
+    color:var(--muted);
+}
+.chat-topdot{
+    width:6px;height:6px;border-radius:50%;
+    background:#34c759;
+    box-shadow:0 0 0 2px rgba(52,199,89,.18);
+}
+.chat-topright{
+    flex:none;
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+.fl-av{
+    width:42px;height:42px;
+    border-radius:var(--pill);
+    background-color:var(--surface-3);
+    background-size:cover;
+    background-position:center;
+    border:1px solid rgba(255,255,255,.85);
+    box-shadow:0 4px 16px rgba(15,23,42,.10), inset 0 1px 0 rgba(255,255,255,.95);
+    padding:0;
+}
+html[data-theme="dark"] .fl-av{
+    border-color:rgba(255,255,255,.16);
+    box-shadow:0 4px 16px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.12);
+}
+
+/* ---------- 顶部「我们的对话」小胶囊 ---------- */
+.chat-intro{
+    align-self:center;
+    margin:2px 0 10px;
+    padding:5px 14px;
+    border-radius:var(--pill);
+    font-size:11.5px;
+    color:var(--muted);
+    background:rgba(255,255,255,.55);
+    -webkit-backdrop-filter:blur(16px) saturate(170%);
+    backdrop-filter:blur(16px) saturate(170%);
+    border:1px solid rgba(255,255,255,.7);
+}
+html[data-theme="dark"] .chat-intro{
+    background:rgba(40,40,44,.55);
+    border-color:rgba(255,255,255,.14);
+}
+
+/* ---------- 表情包/图片消息：不套气泡 ---------- */
+.msg-img{display:flex}
+.msg-img img{
+    display:block;
+    max-width:168px;
+    max-height:190px;
+    border-radius:16px;
+    box-shadow:0 2px 10px rgba(15,23,42,.10);
+}
+.msg-img.stk img{max-width:128px;max-height:128px;border-radius:14px}
+.msg.me .msg-img{justify-content:flex-end}
+.msg.ta .msg-img{justify-content:flex-start}
+
+/* ---------- 工具面板：独立图层，悬浮在聊天之上 ---------- */
+.panel-mask{
+    position:absolute;
+    inset:0;
+    z-index:88;
+    background:rgba(15,23,42,.10);
+    opacity:0;
+    transition:opacity .18s ease;
+}
+.panel-mask.in{opacity:1}
+.chat-panel{
+    position:absolute;
+    left:10px;
+    right:10px;
+    /* page 的底边已随 --kb-shift 抬到键盘上方，面板相对 page 定位即可，不再叠加 */
+    bottom:calc(66px + var(--safe-b));
+    z-index:90;
+    flex:none;
+    height:44vh;
+    min-height:260px;
+    max-height:400px;
+    display:flex;
+    flex-direction:column;
+    border-radius:24px;
+    background:rgba(255,255,255,.78);
+    -webkit-backdrop-filter:blur(30px) saturate(190%);
+    backdrop-filter:blur(30px) saturate(190%);
+    border:1px solid rgba(255,255,255,.85);
+    box-shadow:0 18px 50px rgba(15,23,42,.22), inset 0 1px 0 rgba(255,255,255,.95);
+    opacity:0;
+    transform:translateY(18px);
+    transition:opacity .16s ease,transform .2s cubic-bezier(.32,.72,0,1);
+    pointer-events:none;
+}
+html[data-theme="dark"] .chat-panel{
+    background:rgba(36,36,40,.82);
+    border-color:rgba(255,255,255,.14);
+    box-shadow:0 18px 50px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.12);
+}
+.chat-panel.in{
+    opacity:1;
+    transform:translateY(0);
+    pointer-events:auto;
+}
+
