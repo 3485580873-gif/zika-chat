@@ -1,0 +1,601 @@
+/* ============================================================
+   cards.css — 字卡库页
+   ------------------------------------------------------------
+   结构（与 cards.js 一一对应）：
+     .ck-tabs      五大栏目（主字卡/互动/表情包/氛围感/朋友圈）
+     .ck-who-row    切联系人（每人一套字卡，横排头像胶囊）
+     .ck-kindbar   黑圈：小栏目切换（仅多栏目的大栏目才有）
+     .ck-groupbar  黄圈/黑圈：分组切换（全部 + 各分组）
+     .ck-toolwrap  工具栏（联系人+小栏目+分组），可收起，点顶栏筛选键展开
+     .ck-adder     添加框（常驻在搜索下面）
+     .ck-gblk      内容区按分组折叠，只露名字，展开看内容
+   字卡一律竖排换行（flex-wrap），不做横向滑动
+   ============================================================ */
+
+.ck-body{padding:12px 12px 28px}
+
+/* ---------- ① 五大栏目 tabs ---------- */
+.ck-tabs{
+    flex:none;
+    display:flex;
+    gap:6px;
+    padding:8px 12px;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    border-bottom:1px solid var(--line);
+    background:var(--surface);
+}
+.ck-tabs::-webkit-scrollbar{display:none}
+.ck-tab{
+    flex:none;
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    border:0;
+    background:var(--surface-3);
+    color:var(--text);
+    font-size:13px;
+    padding:7px 12px;
+    border-radius:99px;
+    cursor:pointer;
+    white-space:nowrap;
+}
+.ck-tab i{font-style:normal;font-size:11px;color:var(--muted)}
+.ck-tab.on{background:var(--accent);color:#fff}
+.ck-tab.on i{color:rgba(255,255,255,.82)}
+.ck-tab:active{opacity:.7}
+
+/* ---------- ② 切联系人（每人一套字卡，互不干扰） ---------- */
+.ck-who-row{
+    flex:none;
+    padding:9px 0 8px;
+    background:var(--surface);
+    border-bottom:1px solid var(--line);
+}
+.ck-whobar{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    padding:0 12px;
+    scrollbar-width:none;
+}
+.ck-whobar::-webkit-scrollbar{display:none}
+.ck-whochip{
+    flex:none;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    border:1px solid var(--line-2);
+    background:var(--surface-2);
+    color:var(--text);
+    font-size:13.5px;
+    font-weight:500;
+    padding:6px 12px 6px 6px;
+    border-radius:99px;
+    cursor:pointer;
+    white-space:nowrap;
+}
+.ck-whoav{
+    flex:none;
+    width:24px;height:24px;
+    border-radius:50%;
+    background:var(--surface-3) center/cover;
+}
+.ck-whochip em{font-style:normal;font-size:11px;color:var(--muted)}
+.ck-whochip.on{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#fff;
+}
+.ck-whochip.on .ck-whoav{background-color:rgba(255,255,255,.35)}
+.ck-whochip.on em{color:rgba(255,255,255,.85)}
+.ck-whochip:active{opacity:.72}
+.ck-whohint{padding:2px 14px;font-size:12.5px;color:var(--muted)}
+
+/* ---------- ③ 黑圈：小栏目切换 ---------- */
+.ck-kindbar{
+    flex:none;
+    display:flex;
+    gap:6px;
+    padding:8px 12px;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    background:var(--surface);
+    border-bottom:1px solid var(--line);
+}
+.ck-kindbar[hidden]{display:none}
+.ck-kindbar::-webkit-scrollbar{display:none}
+.ck-kchip{
+    flex:none;
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    border:1px solid var(--line-2);
+    background:var(--surface);
+    color:var(--text);
+    font-size:13px;
+    padding:7px 12px;
+    border-radius:99px;
+    cursor:pointer;
+    white-space:nowrap;
+}
+.ck-kchip em{font-style:normal;font-size:11px;color:var(--muted)}
+.ck-kchip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.ck-kchip.on em{color:rgba(255,255,255,.82)}
+.ck-kchip:active{opacity:.7}
+
+/* ---------- ④ 黄圈 / 黑圈：分组切换 ---------- */
+.ck-groupbar{
+    flex:none;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding:8px 12px;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    background:var(--surface);
+    border-bottom:1px solid var(--line);
+}
+.ck-groupbar::-webkit-scrollbar{display:none}
+.ck-gchip{
+    flex:none;
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    border:0;
+    background:var(--surface-3);
+    color:var(--text);
+    font-size:13px;
+    padding:7px 12px;
+    border-radius:99px;
+    cursor:pointer;
+    white-space:nowrap;
+}
+.ck-gchip em{font-style:normal;font-size:11px;color:var(--muted)}
+.ck-gchip.on{background:var(--accent);color:#fff}
+.ck-gchip.on em{color:rgba(255,255,255,.82)}
+.ck-gchip.off{opacity:.45}
+.ck-gchip.add,.ck-gchip.mgr{
+    background:transparent;
+    color:var(--accent);
+    box-shadow:inset 0 0 0 1px var(--line-2);
+    gap:3px;
+}
+.ck-gchip.mgr{color:var(--muted)}
+.ck-gchip.mgr.on{background:var(--muted);color:#fff;box-shadow:none}
+.ck-gchip:active{opacity:.7}
+
+/* ---------- 工具栏（归属 + 小栏目 + 分组）：可收起，展开时往下展开 ---------- */
+.ck-toolwrap{
+    flex:none;
+    display:none;
+    background:var(--surface);
+    border-bottom:1px solid var(--line);
+}
+.ck-toolwrap.open{
+    display:block;
+    animation:ck-tooldown .18s cubic-bezier(.32,.72,0,1);
+}
+@keyframes ck-tooldown{
+    from{opacity:0;transform:translateY(-10px)}
+    to{opacity:1;transform:none}
+}
+
+/* ---------- 搜索 ----------
+   ★ 用户 2026-10-17：搜索框要**椭圆**（胶囊形），不要圆角矩形。 */
+.ck-searchbar{
+    flex:none;
+    padding:0 12px 8px;
+    background:var(--surface);
+    border-bottom:1px solid var(--line);
+}
+.ck-search{
+    width:100%;
+    box-sizing:border-box;
+    border:1px solid var(--line-2);
+    background:var(--bg);
+    color:var(--text);
+    font-size:14px;
+    padding:9px 16px;
+    border-radius:99px;          /* 椭圆 */
+    text-align:center;
+}
+.ck-search:focus{outline:2px solid var(--accent);text-align:left}
+
+/* ---------- 内容：分组折叠块 ---------- */
+.ck-gblk{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:14px;
+    margin-bottom:10px;
+    overflow:hidden;
+}
+.ck-ghd{
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:9px;
+    border:0;
+    background:transparent;
+    color:var(--text);
+    font-size:14px;
+    font-weight:600;
+    padding:13px 14px;
+    cursor:pointer;
+    text-align:left;
+}
+.ck-ghd.static{cursor:default}
+.ck-ghd:active{background:var(--surface-3)}
+.ck-ghn{flex:1;min-width:0;display:flex;align-items:center;gap:6px}
+.ck-goff{
+    font-style:normal;
+    font-size:10.5px;
+    font-weight:400;
+    color:var(--muted);
+    background:var(--surface-3);
+    padding:2px 6px;
+    border-radius:99px;
+}
+.ck-ghd em{font-style:normal;font-size:12px;color:var(--muted);font-weight:400;flex:none}
+.ck-chev{
+    width:0;height:0;flex:none;
+    border-left:5px solid var(--muted);
+    border-top:4px solid transparent;
+    border-bottom:4px solid transparent;
+    transform:rotate(90deg);
+    transition:transform .18s;
+}
+.ck-gblk.open .ck-chev{transform:rotate(0)}
+.ck-gbd{display:none;border-top:1px solid var(--line);padding:10px 0 12px}
+.ck-gblk.open .ck-gbd{display:block}
+
+/* ---------- 空分组提示 ---------- */
+.ck-subempty{
+    margin:0;
+    padding:12px 14px;
+    font-size:12.5px;
+    color:var(--muted);
+    line-height:1.6;
+}
+
+/* ---------- 单组直显（选中某个分组时用） ---------- */
+.ck-gblock{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:12px 0;
+    margin-bottom:10px;
+}
+
+/* ---------- 条目：竖排换行（往下滑，不横滑） ---------- */
+.ck-strip{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:flex-start;
+    gap:8px;
+    padding:0 14px;
+}
+
+.ck-chip{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    max-width:100%;
+    background:var(--surface-3);
+    color:var(--text);
+    font-size:13.5px;
+    padding:8px 6px 8px 12px;
+    border-radius:99px;
+    white-space:nowrap;
+}
+.ck-chip.sel{box-shadow:0 0 0 2px var(--accent)}
+.ck-chip .ck-txt{
+    flex:none;
+    max-width:min(100%, 460px);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    line-height:1.35;
+}
+.ck-chip.editing{padding:5px 6px 5px 8px;gap:4px;max-width:none}
+.ck-editinput{
+    flex:1;
+    min-width:80px;
+    border:1px solid var(--accent);
+    background:var(--bg);
+    color:var(--text);
+    font-size:13.5px;
+    padding:6px 9px;
+    border-radius:9px;
+}
+.ck-tag{
+    flex:none;
+    font-size:11px;
+    color:var(--muted);
+    background:var(--bg);
+    padding:3px 8px;
+    border-radius:99px;
+}
+.ck-tag.priv{background:rgba(10,132,255,.12);color:var(--accent)}
+.ck-del{
+    flex:none;
+    border:0;
+    background:transparent;
+    color:var(--muted);
+    padding:2px;
+    cursor:pointer;
+    display:flex;
+    border-radius:50%;
+}
+.ck-del:active{color:#ff3b30}
+.ck-check{
+    width:19px;height:19px;flex:none;
+    border-radius:50%;
+    box-shadow:inset 0 0 0 1.5px var(--line-2);
+    background:transparent;
+    position:relative;
+}
+.ck-check.on{background:var(--accent);box-shadow:none}
+.ck-check.on::after{
+    content:'';position:absolute;left:6px;top:3px;
+    width:5px;height:9px;
+    border-right:2px solid #fff;border-bottom:2px solid #fff;
+    transform:rotate(40deg);
+}
+
+/* ---------- 图片类（表情包）：竖排贴纸网格 ---------- */
+.ck-stk{
+    position:relative;
+    width:76px;height:76px;
+    background:var(--surface-3);
+    border-radius:12px;
+    overflow:hidden;
+}
+.ck-stk img{width:100%;height:100%;object-fit:contain;display:block}
+.ck-stk.sel{box-shadow:0 0 0 3px var(--accent)}
+.ck-stk .ck-check{position:absolute;top:4px;left:4px;background:#fff;box-shadow:inset 0 0 0 1.5px var(--line-2)}
+.ck-stkdel{
+    position:absolute;
+    top:2px;right:2px;
+    border:0;
+    background:rgba(0,0,0,.42);
+    color:#fff;
+    border-radius:50%;
+    width:19px;height:19px;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    padding:0;
+    opacity:0;
+    transition:opacity .15s;
+}
+.ck-stk:active .ck-stkdel{opacity:1}
+
+/* ---------- 添加框（常驻在搜索下面） ---------- */
+.ck-adder{
+    flex:none;
+    padding:10px 12px 6px;
+    background:var(--surface);
+    border-bottom:1px solid var(--line);
+}
+.ck-adder .ck-add{
+    background:transparent;
+    border:0;
+    border-radius:0;
+    padding:0;
+    margin:0;
+}
+.ck-add{}
+.ck-blockt{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    color:var(--muted);
+    margin-bottom:8px;
+}
+.ck-ta{
+    width:100%;
+    border:1px solid var(--line-2);
+    background:var(--bg);
+    color:var(--text);
+    font-size:14px;
+    line-height:1.6;
+    padding:10px 12px;
+    border-radius:12px;
+    resize:vertical;
+    box-sizing:border-box;
+}
+.ck-ta:focus{outline:2px solid var(--accent)}
+.ck-row2{display:flex;gap:8px;margin:8px 0;flex-wrap:wrap}
+.ck-select{
+    flex:1;
+    min-width:130px;
+    border:1px solid var(--line-2);
+    background:var(--bg);
+    color:var(--text);
+    font-size:13px;
+    padding:9px 8px;
+    border-radius:10px;
+}
+.ck-select:focus{outline:2px solid var(--accent)}
+.ck-btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    border:0;
+    background:var(--surface-3);
+    color:var(--text);
+    font-size:14px;
+    font-weight:500;
+    padding:10px 16px;
+    border-radius:12px;
+    cursor:pointer;
+}
+.ck-btn.primary{background:var(--accent);color:#fff}
+.ck-btn.wide{width:100%;margin-top:4px}
+.ck-btn:active{opacity:.6}
+.ck-tip{font-size:11.5px;color:var(--muted);line-height:1.55;margin:6px 0 0}
+
+/* ---------- 分组管理面板 ---------- */
+.ck-gpanel{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:12px 14px;
+    margin-bottom:10px;
+}
+.ck-grow{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+    padding:10px 0;
+    border-bottom:1px solid var(--line);
+}
+.ck-grow:last-of-type{border-bottom:0}
+.ck-grow b{font-size:14px;color:var(--text)}
+.ck-gcount{font-size:12px;color:var(--muted)}
+.ck-gbtns{display:flex;gap:6px;margin-left:auto}
+.ck-mini{
+    border:0;
+    background:var(--surface-3);
+    color:var(--text);
+    font-size:12px;
+    padding:6px 10px;
+    border-radius:9px;
+    cursor:pointer;
+    flex:none;
+}
+.ck-mini.on{background:#34c759;color:#fff}
+.ck-mini.danger{background:rgba(255,59,48,.12);color:#ff3b30}
+.ck-mini:active{opacity:.6}
+
+/* ---------- 空态 ---------- */
+.ck-empty{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+    padding:38px 24px;
+    color:var(--muted);
+    text-align:center;
+}
+.ck-empty p{margin:0;font-size:14px;color:var(--text)}
+.ck-empty span{font-size:12px;line-height:1.5}
+
+/* ---------- 底部操作条 ---------- */
+/* v28 底栏变成 5 个键（多了「导出表情包」）：6 列网格、每键占 2 格 → 3+2 两行，
+   不会出现「导出表…」这种被截断的情况 */
+.ck-foot{
+    flex:none;
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:8px;
+    padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+    border-top:1px solid var(--line);
+    background:var(--surface);
+}
+.ck-foot .ck-fbtn{
+    grid-column:span 2;
+    min-width:0;
+    padding:10px 4px;
+    text-align:center;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+.ck-fbtn{
+    border:0;
+    background:var(--accent);
+    color:#fff;
+    font-size:14px;
+    font-weight:500;
+    padding:10px 14px;
+    border-radius:12px;
+    cursor:pointer;
+    white-space:nowrap;
+}
+.ck-fbtn.ghost{background:var(--surface-3);color:var(--text)}
+.ck-fbtn.danger{background:rgba(255,59,48,.12);color:#ff3b30}
+.ck-fbtn:active{opacity:.7}
+/* 大分组懒渲染：先渲染前 200 条，底部给「显示全部」 */
+.ck-loadmore{
+    flex:none;
+    padding:10px 0 2px;
+    text-align:center;
+}
+
+/* ---------- 表情包分组：圆形图标横排（参照 dunian） ---------- */
+.ck-gnav{
+    display:flex;
+    align-items:flex-start;
+    gap:9px;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    padding:11px 14px 24px;   /* 下方留出组名位置 */
+    background:var(--surface);
+    border-bottom:1px solid var(--line);
+    scrollbar-width:none;
+}
+.ck-gnav::-webkit-scrollbar{display:none}
+.ck-gicon{
+    position:relative;
+    flex:none;
+    width:54px;height:54px;
+    border:2px solid transparent;
+    border-radius:50%;
+    background:var(--surface-3) center/cover no-repeat;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    padding:0;
+    color:var(--muted);
+}
+.ck-gicon.all{background:var(--surface-3);font-size:11.5px;font-weight:600;color:var(--text)}
+.ck-gicon.active{border-color:var(--accent)}
+.ck-gicon.off{opacity:.42}
+.ck-gicon.add,.ck-gicon.mgr{
+    border:2px dashed var(--line-2);
+    background:transparent;
+}
+.ck-gicon.add:active,.ck-gicon.mgr:active{opacity:.6}
+.ck-gicon.mgr{border-style:solid;background:var(--surface-3)}
+.ck-gicon.active.add,.ck-gicon.active.mgr{border-color:var(--accent)}
+.ck-gicon-ch{font-size:19px;font-weight:600;color:var(--muted)}
+.ck-gicon-tx{
+    position:absolute;
+    left:50%;
+    top:calc(100% + 4px);
+    transform:translateX(-50%);
+    font-size:10.5px;
+    line-height:1.2;
+    color:var(--muted);
+    white-space:nowrap;
+    max-width:66px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    pointer-events:none;
+    background:var(--surface);
+    padding:0 3px;
+    border-radius:4px;
+}
+.ck-gicon.active .ck-gicon-tx{color:var(--accent);font-weight:600}
+.ck-gicon i{
+    position:absolute;
+    top:-3px;right:-3px;
+    min-width:17px;height:17px;
+    padding:0 4px;
+    border-radius:99px;
+    background:var(--surface-solid);
+    border:1px solid var(--line-2);
+    font-style:normal;
+    font-size:9.5px;
+    line-height:15px;
+    color:var(--muted);
+}
+.ck-gicon.active i{background:var(--accent);border-color:var(--accent);color:#fff}
+.ck-gicon > .ico{stroke-width:1.9}

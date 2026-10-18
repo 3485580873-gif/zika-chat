@@ -1,0 +1,459 @@
+/* ============================================================
+   call.css — 视频通话
+   ------------------------------------------------------------
+   ★ v30 重做（用户 2026-10-18：「打视频功能展示 ui 都用 evanlu 的」）：
+   视觉 1:1 照搬 evanlu-repo/js/features/call.js 的 injectCSS()：
+     · 来电遮罩 = 全屏 blur(22px) + 272px 玻璃圆角卡(32px) + 双层扩散环
+     · 通话窗 = **悬浮可拖动小窗**（不是全屏！）+ 渐变底 + 三个漂浮光球
+       + 顶部计时胶囊 + 中间脉冲头像 + 声波 + 底部红色挂断
+     · 尺寸预设（迷你/小/标准/大/全屏）+ 最小化胶囊 + 沉浸模式
+   类名沿用 evanlu 的 call-* 前缀，方便对照。
+   ============================================================ */
+
+/* ---------- 来电遮罩 ---------- */
+#call-incoming-overlay{
+    position:fixed;inset:0;z-index:9600;
+    display:none;align-items:center;justify-content:center;
+    background:rgba(0,0,0,.62);
+    backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+}
+#call-incoming-overlay.visible{display:flex;animation:cFi .35s ease;}
+.call-inc-card{
+    width:272px;
+    background:linear-gradient(160deg,rgba(255,255,255,.11),rgba(255,255,255,.04));
+    border:1px solid rgba(255,255,255,.18);border-radius:32px;
+    padding:44px 28px 36px;
+    display:flex;flex-direction:column;align-items:center;gap:8px;color:#fff;
+    box-shadow:0 32px 80px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.15);
+    animation:cCu .45s cubic-bezier(.22,1,.36,1);
+    position:relative;overflow:hidden;
+}
+.call-inc-card::before{
+    content:'';position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(ellipse at 50% 0%,rgba(var(--accent-rgb,140,160,255),.28),transparent 65%);
+}
+.call-inc-ring{position:relative;margin-bottom:8px;width:88px;height:88px;}
+.call-inc-ring::before,.call-inc-ring::after{
+    content:'';position:absolute;
+    top:-12px;left:-12px;right:-12px;bottom:-12px;
+    border-radius:50%;border:1.5px solid rgba(255,255,255,.18);
+    animation:cRp 2.2s ease-in-out infinite;
+}
+.call-inc-ring::after{
+    top:-22px;left:-22px;right:-22px;bottom:-22px;
+    border-color:rgba(255,255,255,.08);animation-delay:.65s;
+}
+.call-inc-avatar{
+    position:absolute;inset:0;
+    border-radius:50%;background:var(--accent,#8ca0ff);
+    display:flex;align-items:center;justify-content:center;overflow:hidden;
+    border:2px solid rgba(255,255,255,.25);box-shadow:0 8px 28px rgba(0,0,0,.36);
+}
+.call-inc-avatar img{width:100%;height:100%;object-fit:cover;}
+.call-inc-avatar{border-color:rgba(255,150,180,.9);}
+.call-inc-avatar svg{width:34px;height:34px;color:rgba(255,255,255,.85);}
+.call-inc-name{font-size:22px;font-weight:700;margin-top:4px;}
+.call-inc-sub{font-size:12.5px;color:rgba(255,255,255,.48);display:flex;align-items:center;gap:6px;}
+.call-inc-sub-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.48);animation:cBl 1.1s step-end infinite;}
+.call-inc-actions{display:flex;gap:44px;margin-top:26px;}
+.call-inc-btn{display:flex;flex-direction:column;align-items:center;gap:7px;background:none;border:none;cursor:pointer;color:#fff;}
+.call-inc-circle{
+    width:64px;height:64px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    transition:transform .18s;padding:16px;
+}
+.call-inc-btn:active .call-inc-circle{transform:scale(.9);}
+.call-inc-reject .call-inc-circle{background:linear-gradient(135deg,#ff5252,#c62828);box-shadow:0 6px 20px rgba(255,82,82,.45);}
+.call-inc-accept .call-inc-circle{background:linear-gradient(135deg,#4caf50,#2e7d32);box-shadow:0 6px 20px rgba(76,175,80,.45);padding:18px;}
+.call-inc-circle svg{width:100%;height:100%;fill:#fff;}
+.call-inc-lbl{font-size:12px;color:rgba(255,255,255,.48);font-weight:500;}
+
+/* ★ 隐藏头像：evanlu 的 #call-window.hide-avatar */
+#call-window.hide-avatar #call-window-body{opacity:0 !important;pointer-events:none !important;}
+#call-window.hide-avatar #call-connecting-state{opacity:0 !important;pointer-events:none !important;}
+#call-window.hide-avatar .call-overlay{opacity:.3 !important;}
+/* ---------- 通话窗（悬浮小窗） ---------- */
+#call-window{
+    position:fixed;z-index:9650;
+    width:280px;height:440px;
+    right:16px;bottom:90px;
+    border-radius:22px;overflow:visible;
+    display:none;flex-direction:column;
+    box-shadow:0 20px 60px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.1);
+    user-select:none;touch-action:none;
+    min-width:160px;min-height:240px;
+    max-width:90vw;max-height:90vh;
+}
+#call-window.visible{display:flex;animation:cWi .4s cubic-bezier(.22,1,.36,1);}
+#call-window-inner{
+    border-radius:22px;overflow:hidden;
+    flex:1;display:flex;flex-direction:column;position:relative;
+}
+#call-window-bg{position:absolute;inset:0;z-index:0;}
+.call-bg-grad{position:absolute;inset:0;background:linear-gradient(155deg,#0d1b2a 0%,#1b263b 50%,#415a77 100%);}
+.call-orb{position:absolute;border-radius:50%;filter:blur(44px);opacity:.28;animation:cOrb linear infinite;pointer-events:none;}
+/* ★ v37：光球不再用 var(--accent)（粉色主题下整窗泛粉），改成中性蓝 */
+.call-orb-1{width:130px;height:130px;background:#5b7cfa;top:-25px;left:-25px;animation-duration:18s;}
+.call-orb-2{width:90px;height:90px;background:#4a90d9;bottom:10px;right:-10px;animation-duration:23s;animation-delay:-9s;}
+.call-orb-3{width:70px;height:70px;background:#9b59b6;top:40%;left:45%;animation-duration:28s;animation-delay:-14s;}
+/* ★ v33：自定义通话背景图（视频里那套 —— 整窗被自己的图铺满）。
+   右下角小圆钮选图 → 存 IndexedDB → 每次通话都铺上。 */
+#call-window-bg img{
+    position:absolute;inset:0;width:100%;height:100%;
+    object-fit:cover;display:none;z-index:1;
+}
+/* 有背景图时把渐变/光球压暗，头像和名字才看得清 */
+#call-window.has-bg .call-bg-grad{opacity:.2}
+#call-window.has-bg .call-orb{opacity:.14}
+#call-window.has-bg .call-overlay{
+    background:linear-gradient(to bottom,rgba(0,0,0,.45) 0%,rgba(0,0,0,.10) 30%,rgba(0,0,0,.12) 55%,rgba(0,0,0,.58) 100%);
+}
+.call-overlay{
+    position:absolute;inset:0;z-index:1;transition:opacity .4s;
+    background:linear-gradient(to bottom,rgba(0,0,0,.5) 0%,rgba(0,0,0,.04) 35%,rgba(0,0,0,.04) 60%,rgba(0,0,0,.65) 100%);
+}
+
+#call-window-header{
+    position:relative;z-index:10;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:12px 12px 6px;cursor:grab;transition:opacity .35s;flex-shrink:0;
+}
+#call-window-header:active{cursor:grabbing;}
+.call-badge{
+    display:flex;align-items:center;gap:5px;
+    background:rgba(0,0,0,.32);backdrop-filter:blur(8px);
+    border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:4px 10px;
+}
+.call-rec-dot{
+    width:6px;height:6px;border-radius:50%;
+    background:#4caf50;box-shadow:0 0 6px #4caf50;
+    animation:cBl 1.8s ease-in-out infinite alternate;flex-shrink:0;
+}
+.call-timer-txt{
+    font-size:11px;font-weight:700;letter-spacing:.08em;
+    color:rgba(255,255,255,.92);font-variant-numeric:tabular-nums;
+}
+.call-top-btns{display:flex;gap:3px;}
+.call-top-btn{
+    width:26px;height:26px;border-radius:50%;border:none;
+    background:rgba(255,255,255,.12);backdrop-filter:blur(6px);
+    color:rgba(255,255,255,.75);cursor:pointer;font-size:10px;
+    display:flex;align-items:center;justify-content:center;padding:0;
+    transition:background .2s,color .2s,transform .15s;
+}
+.call-top-btn:hover{background:rgba(255,255,255,.24);color:#fff;transform:scale(1.1);}
+.call-top-btn svg{width:12px;height:12px;}
+
+/* 连接中 */
+#call-connecting-state{
+    position:relative;z-index:10;
+    flex:1;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:8px;padding:12px;
+}
+#call-connecting-state .call-av-wrap{width:68px;height:68px;}
+#call-connecting-state .call-avatar{width:68px;height:68px;}
+
+/* 通话中 */
+#call-window-body{
+    position:relative;z-index:10;
+    flex:1;display:flex;flex-direction:column;
+    align-items:center;justify-content:flex-start;
+    gap:8px;padding:24px 12px 4px;
+}
+.call-av-wrap{
+    position:relative;width:52px;height:52px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+}
+.call-av-pulse{
+    position:absolute;top:-8px;left:-8px;right:-8px;bottom:-8px;
+    border-radius:50%;border:1.5px solid rgba(255,255,255,.22);
+    animation:cAp 2.5s ease-in-out infinite;pointer-events:none;
+}
+.call-av-pulse2{
+    position:absolute;top:-14px;left:-14px;right:-14px;bottom:-14px;
+    border-radius:50%;border:1px solid rgba(255,255,255,.09);
+    animation:cAp 2.5s ease-in-out infinite .65s;pointer-events:none;
+}
+.call-avatar{
+    width:52px;height:52px;border-radius:50%;
+    background:var(--accent,#8ca0ff);
+    border:2px solid rgba(255,255,255,.28);overflow:hidden;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 4px 16px rgba(0,0,0,.4);
+    position:relative;z-index:1;flex-shrink:0;
+}
+.call-avatar img{width:100%;height:100%;object-fit:cover;}
+.call-avatar svg{width:20px;height:20px;color:rgba(255,255,255,.82);}
+/* v33：视频里头像外面套一圈**粉色描边**（story 圈那种），照做 */
+.call-avatar{
+    border-color:rgba(255,150,180,.9);
+    box-shadow:0 0 0 3px rgba(255,120,160,.30),0 4px 16px rgba(0,0,0,.4);
+}
+.call-name{
+    font-size:14px;font-weight:600;color:#fff;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    max-width:88%;text-align:center;text-shadow:0 1px 3px rgba(0,0,0,.4);
+}
+.call-wave{display:flex;align-items:center;gap:3px;height:14px;}
+.call-wave span{width:2.5px;border-radius:3px;background:rgba(255,255,255,.5);animation:cWv .85s ease-in-out infinite;}
+.call-wave span:nth-child(1){height:5px;animation-delay:0s;}
+.call-wave span:nth-child(2){height:10px;animation-delay:.1s;}
+.call-wave span:nth-child(3){height:14px;animation-delay:.2s;}
+.call-wave span:nth-child(4){height:10px;animation-delay:.3s;}
+.call-wave span:nth-child(5){height:5px;animation-delay:.4s;}
+
+/* 底部挂断 */
+#call-window-controls{
+    position:relative;z-index:10;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    padding:8px 12px 16px;
+}
+.call-hangup-btn{
+    width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,#ff5252,#c62828);
+    box-shadow:0 6px 20px rgba(255,82,82,.5),0 0 0 1px rgba(255,255,255,.1);
+    transition:transform .18s,box-shadow .2s;padding:14px;
+}
+.call-hangup-btn:active{transform:scale(.9);}
+.call-hangup-btn svg{width:100%;height:100%;fill:#fff;}
+
+/* ★ 右下角把手：拖拽调节浮窗大小（evanlu #call-resize-handle） */
+#call-resize-handle{
+    position:absolute;bottom:-2px;right:-2px;z-index:12;
+    width:26px;height:26px;cursor:se-resize;
+    display:flex;align-items:flex-end;justify-content:flex-end;
+    padding:5px;touch-action:none;
+}
+#call-resize-handle::after{
+    content:'';width:11px;height:11px;
+    border-right:2px solid rgba(255,255,255,.45);
+    border-bottom:2px solid rgba(255,255,255,.45);
+    border-radius:0 0 4px 0;
+}
+#call-window.full #call-resize-handle{display:none !important;}
+
+/* 顶栏按钮选中态（隐藏头像 / 沉浸模式） */
+.call-top-btn.active,.call-util-btn.active{background:rgba(255,255,255,.3);color:#fff;}
+
+/* 连接中的小字 */
+.call-conn-sub{
+    font-size:11px;color:rgba(255,255,255,.55);
+    display:flex;align-items:center;gap:5px;
+}
+.call-conn-sub svg{width:11px;height:11px;opacity:.75}
+/* 工具小圆钮 */
+.call-util-btn{
+    position:absolute;z-index:10;
+    width:28px;height:28px;border-radius:50%;border:none;
+    background:rgba(255,255,255,.13);backdrop-filter:blur(8px);
+    color:rgba(255,255,255,.65);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;padding:0;
+    transition:background .2s,color .2s,transform .15s;
+}
+.call-util-btn.active{background:rgba(255,255,255,.28);color:#fff;}
+.call-util-btn svg{width:13px;height:13px;}
+#call-bg-btn{bottom:70px;right:10px;}
+#call-immersive-btn{bottom:70px;left:10px;}
+#call-bg-file-input{display:none;}
+
+/* 沉浸模式 */
+#call-window.immersive #call-window-header,
+#call-window.immersive #call-window-body,
+#call-window.immersive #call-connecting-state,
+#call-window.immersive #call-window-controls,
+#call-window.immersive #call-bg-btn,
+#call-window.immersive .call-overlay{opacity:0 !important;pointer-events:none !important;}
+#call-window.immersive #call-immersive-btn{opacity:.35 !important;pointer-events:all !important;}
+
+/* ★ v37：迷你窗(<=200px)顶栏按钮缩小，腾出可拖动的空白 */
+#call-window.size-xs #call-window-header .call-top-btn{width:22px;height:22px}
+#call-window.size-xs #call-window-header .call-top-btn svg{width:10px;height:10px}
+#call-window.size-xs .call-badge{padding:3px 8px}
+#call-window.size-xs #call-window-header{padding:10px 8px 4px}
+#call-window.size-xs .call-av-wrap{width:40px;height:40px}
+#call-window.size-xs .call-avatar{width:40px;height:40px}
+
+/* 尺寸预设菜单 */
+#call-size-presets{
+    position:fixed;z-index:9700;
+    display:none;flex-direction:column;gap:2px;
+    background:rgba(12,18,36,.94);backdrop-filter:blur(18px);
+    border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:5px;
+    box-shadow:0 12px 38px rgba(0,0,0,.55);min-width:140px;
+}
+#call-size-presets.open{display:flex;animation:cFi .18s ease;}
+.call-size-btn{
+    padding:7px 11px;font-size:12px;color:rgba(255,255,255,.8);
+    background:none;border:none;border-radius:8px;
+    cursor:pointer;white-space:nowrap;text-align:left;
+    transition:background .15s;display:flex;align-items:center;gap:8px;
+}
+.call-size-btn:hover{background:rgba(255,255,255,.1);color:#fff;}
+.call-size-btn.on{background:rgba(255,255,255,.14);color:#fff;}
+
+/* 最小化胶囊 */
+#call-mini-pill{
+    position:fixed;bottom:82px;right:16px;z-index:9651;
+    display:none;align-items:center;gap:9px;
+    /* ★ v37：原来是 rgba(252,224,232,.5) 粉色磨砂，用户不要粉色（用户 v37） */
+    background:rgba(255,255,255,.55);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border:1px solid rgba(255,255,255,.4);
+    box-shadow:0 8px 32px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.5);
+    border-radius:30px;
+    padding:8px 14px 8px 10px;
+    cursor:grab;color:#fff;user-select:none;touch-action:none;
+}
+#call-mini-pill.visible{display:flex;animation:cPi .3s cubic-bezier(.22,1,.36,1);}
+.call-mini-av{
+    width:30px;height:30px;border-radius:50%;
+    background:var(--accent,#8ca0ff);overflow:hidden;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.call-mini-av img{width:100%;height:100%;object-fit:cover;}
+.call-mini-av svg{width:12px;height:12px;color:rgba(255,255,255,.82);}
+.call-mini-info{display:flex;flex-direction:column;gap:1px;}
+.call-mini-name{font-size:12px;font-weight:600;line-height:1.1;color:var(--ink,#2a2a2e);}
+.call-mini-time{font-size:11px;color:var(--muted,#8a8a8a);font-variant-numeric:tabular-nums;font-weight:500;}
+.call-mini-dot{width:6px;height:6px;border-radius:50%;background:#4caf50;box-shadow:0 0 5px #4caf50;animation:cBl 1.6s ease-in-out infinite alternate;flex-shrink:0;}
+.call-mini-hangup{
+    width:30px;height:30px;border-radius:50%;border:none;
+    background:rgba(255,82,82,.75);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;padding:8px;
+    transition:background .2s,transform .15s;flex-shrink:0;
+}
+.call-mini-hangup:active{background:#ff5252;transform:scale(1.12);}
+.call-mini-hangup svg{width:100%;height:100%;fill:#fff;}
+
+/* 全屏模式 */
+#call-window.full{
+    left:0 !important;top:0 !important;right:auto !important;bottom:auto !important;
+    width:100vw !important;height:100vh !important;max-width:none !important;max-height:none !important;
+    border-radius:0 !important;box-shadow:none;
+}
+#call-window.full #call-window-inner{
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+}
+#call-window.full #call-window-header{padding:calc(env(safe-area-inset-top,0px) + 12px) 14px 10px;}
+#call-window.full .call-top-btn{width:34px;height:34px;background:rgba(255,255,255,.18);color:rgba(255,255,255,.92);}
+#call-window.full .call-top-btn svg{width:15px;height:15px;}
+#call-window.full .call-badge{padding:6px 13px;}
+#call-window.full .call-timer-txt{font-size:12.5px;}
+#call-window.full #call-connecting-state,
+#call-window.full #call-window-body{justify-content:center !important;padding:20px 24px !important;gap:16px !important;}
+#call-window.full #call-connecting-state .call-av-wrap{width:112px;height:112px;}
+#call-window.full #call-connecting-state .call-avatar{width:112px;height:112px;}
+#call-window.full #call-window-body .call-av-wrap{width:104px;height:104px;}
+#call-window.full #call-window-body .call-avatar{width:104px;height:104px;}
+#call-window.full .call-name{font-size:19px !important;}
+#call-window.full .call-wave{height:22px;gap:5px;}
+#call-window.full .call-wave span{width:4px;}
+#call-window.full #call-window-controls{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 32px);}
+#call-window.full .call-hangup-btn{width:64px;height:64px;}
+#call-window.full .call-util-btn{width:34px;height:34px;bottom:calc(env(safe-area-inset-bottom,0px) + 100px);}
+#call-window.full #call-bg-btn{right:16px;}
+#call-window.full #call-immersive-btn{left:16px;}
+
+/* ---------- 动画 ---------- */
+@keyframes cFi{from{opacity:0}to{opacity:1}}
+@keyframes cCu{from{opacity:0;transform:translateY(28px) scale(.94)}to{opacity:1;transform:none}}
+@keyframes cWi{from{opacity:0;transform:scale(.84) translateY(18px)}to{opacity:1;transform:none}}
+@keyframes cPi{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@keyframes cRp{0%,100%{opacity:.55;transform:scale(1)}50%{opacity:.12;transform:scale(1.12)}}
+@keyframes cBl{0%,100%{opacity:1}50%{opacity:.25}}
+@keyframes cWv{0%,100%{transform:scaleY(.45)}50%{transform:scaleY(1)}}
+@keyframes cOrb{0%{transform:translate(0,0)}33%{transform:translate(26px,-20px)}66%{transform:translate(-18px,14px)}100%{transform:translate(0,0)}}
+@keyframes cAp{0%{transform:scale(.9);opacity:.7}100%{transform:scale(1.2);opacity:0}}
+/* ============================================================
+   ★ v36：通话崩溃恢复弹窗（照 evanlu 的 showCallRecoverDialog）
+   ============================================================ */
+.call-recover{
+    position:fixed;inset:0;z-index:9700;
+    display:flex;align-items:center;justify-content:center;
+    padding:0 26px;
+    background:rgba(0,0,0,.55);
+    -webkit-backdrop-filter:blur(6px);
+    backdrop-filter:blur(6px);
+}
+.call-recover-box{
+    width:min(86vw,320px);
+    display:flex;flex-direction:column;align-items:center;
+    text-align:center;
+    padding:24px 20px 18px;
+    border-radius:20px;
+    background:rgba(255,255,255,.96);
+    box-shadow:0 20px 50px rgba(0,0,0,.35);
+}
+html[data-theme="dark"] .call-recover-box{background:rgba(34,34,38,.97)}
+.call-recover-ico{
+    width:56px;height:56px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    margin-bottom:12px;
+    color:#fff;
+    background:linear-gradient(135deg,#4caf50,#2e7d32);
+    box-shadow:0 6px 20px rgba(76,175,80,.4);
+}
+.call-recover-box b{font-size:16px;font-weight:700;color:var(--ink,#222)}
+.call-recover-box p{
+    margin:8px 0 10px;
+    font-size:13px;line-height:1.65;color:var(--muted,#8a8a8a);
+}
+.call-recover-cd{font-size:11px;color:var(--faint,#aaa);margin-bottom:14px}
+.call-recover-btns{display:flex;gap:10px;width:100%}
+.call-recover-btn{
+    flex:1;padding:11px 0;
+    border:0;border-radius:12px;
+    font-size:14px;font-weight:600;
+    cursor:pointer;pointer-events:auto;
+}
+.call-recover-btn.ghost{background:rgba(120,120,128,.16);color:var(--ink,#333)}
+.call-recover-btn.primary{background:var(--accent,#07c160);color:#fff}
+.call-recover-btn:active{opacity:.8}
+
+/* ============================================================
+   ★ v39：拖动手感（用户：「整个通话移动起来的互动性很差」）
+   ============================================================ */
+
+/* 拖动时「抬起」——放大一点 + 更重的阴影 + 抓手高亮，手感立刻不一样 */
+#call-window.dragging,
+#call-mini-pill.dragging{
+    transform:scale(1.04);
+    box-shadow:0 26px 70px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.22);
+    transition:none;               /* 拖动中不要有过渡，否则会「粘手」 */
+    cursor:grabbing;
+}
+#call-window.dragging #call-window-header{cursor:grabbing}
+
+/* 平时就给明确的抓手暗示 */
+#call-window-header{cursor:grab}
+#call-resize-handle{cursor:se-resize}
+
+/* 胶囊：明确可拖（原来只有 grab 指针但没有拖动逻辑） */
+#call-mini-pill{cursor:grab;touch-action:none}
+#call-mini-pill.dragging{
+    transform:scale(1.06);
+    background:rgba(255,255,255,.72);
+}
+
+/* 过渡：只在非拖动状态生效，让「放下」有轻微回弹感 */
+#call-window,#call-mini-pill{
+    transition:transform .18s cubic-bezier(.22,1,.36,1),box-shadow .18s ease,opacity .2s ease;
+}
+
+/* ============================================================
+   ★ v41：pointer 拖动必需（照 mochi）
+   没有 touch-action:none，移动端浏览器会把手势判定为滚动，
+   pointermove 被节流甚至吞掉 → 浮窗「拖不动」。
+   ============================================================ */
+#call-window.draggable,
+#call-mini-pill.draggable{
+    touch-action:none;
+    -webkit-user-select:none;
+    user-select:none;
+}
+#call-window-header.draggable{touch-action:none}
+
+/* 拖动把手：可点区域扩大一点（手指头好按） */
+#call-window-header{cursor:grab;touch-action:none}

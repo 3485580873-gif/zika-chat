@@ -1,0 +1,983 @@
+/* ============================================================
+   app.css — 页面栈 / iOS 顶栏 / 通用控件 / 联系人
+   ============================================================ */
+
+/* ---------- 页面栈 ----------
+   ⚠ 键盘适配别用 padding-bottom：那会把整页「撑高」，
+   iOS 会自动把溢出容器滚进可视区，输入框跟着漂走 → 点进去看不到自己打的字。
+
+   ★ 2026-10-17 大改（用户实机反馈「点输入框整个画面被卡出去」「字卡库输入法盖住内容」）：
+     **不再整页 translateY 上抬**。上抬会把顶栏一起顶出屏幕（#stage 是 overflow:hidden，
+     上面直接被裁掉）→ 用户看到的就是「整个画面卡出去」。
+     正确做法：把页面的 **底边抬到键盘顶部**（bottom: var(--kb-shift)），
+     页高随之缩短，顶栏原地不动、底栏/输入框正好贴在键盘上方。
+       · iOS Safari / 微信 X5(iOS)：布局视口不缩，--kb-shift = 键盘高
+       · 安卓 WebView：布局视口本身缩到键盘上方，--kb-shift = 0，页高自动就是对的
+     另外：不用 transform 还顺带修了一个坑 —— transform 会成为 position:fixed
+     后代的包含块（消息菜单、图片查看器都中过招）。
+   ---------------------------------------------------------- */
+.page{
+    position:absolute;
+    top:0;left:0;right:0;
+    bottom:var(--kb-shift,0px);
+    display:flex;
+    flex-direction:column;
+    background:var(--bg);
+    padding-bottom:0;
+    transition:opacity .2s ease,transform .24s cubic-bezier(.32,.72,0,1);
+}
+/* 键盘弹起时切掉位移动画，避免跟着键盘高度变化上下抖 */
+.kb-open .page{transition:opacity .2s ease}
+.page-fail{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:12px;padding:40px 32px;text-align:center;color:var(--text);
+}
+.page-fail b{font-size:17px;font-weight:700}
+.page-fail span{
+    font-size:12.5px;color:var(--muted);line-height:1.6;word-break:break-word;
+    max-width:100%;padding:10px 14px;border-radius:12px;background:var(--surface-2);
+}
+.page-fail .gs-btn{margin-top:4px}
+.page.in{opacity:1}
+.page.out{opacity:0;transform:translateY(10px)}
+.page.behind{opacity:0;pointer-events:none}
+
+/* ---------- 顶栏（白磨砂玻璃：半透明 + 强模糊，背景图透出来） ---------- */
+.bar{
+    flex:none;
+    position:relative;
+    z-index:5;
+    display:flex;
+    align-items:center;
+    min-height:44px;
+    padding:calc(var(--safe-t) + 3px) 6px 5px;
+    background:rgba(255,255,255,.42);
+    -webkit-backdrop-filter:blur(26px) saturate(180%);
+    backdrop-filter:blur(26px) saturate(180%);
+    border-bottom:1px solid rgba(255,255,255,.55);
+}
+html[data-theme="dark"] .bar{
+    background:rgba(28,28,30,.46);
+    border-bottom-color:rgba(255,255,255,.10);
+}
+.bar-btn{
+    width:38px;
+    height:38px;
+    flex:none;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:var(--pill);
+    color:var(--accent);
+}
+.bar-btn:active{opacity:.45}
+.bar-btn.plain{color:var(--ink)}
+
+/* 中间：头像 + 名字（横排，居中） */
+.bar-mid{
+    flex:1;
+    min-width:0;
+    display:flex;
+    flex-direction:row;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    padding:2px 6px;
+    border-radius:var(--r-sm);
+}
+.bar-mid:active{opacity:.5}
+/* 顶栏头像也跟随头像框大小，但封顶 40px 避免撑破 44px 顶栏 */
+.bar-mid .avatar{width:37px;height:37px}
+.bar-nm{
+    font-size:15.5px;
+    font-weight:600;
+    letter-spacing:-.2px;
+    max-width:52vw;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+.bar-sg{
+    font-size:11.5px;
+    color:var(--muted);
+    max-width:100%;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+/* 列表页标题（左对齐，无头像） */
+.bar-title{
+    flex:1;
+    min-width:0;
+    text-align:center;
+    font-size:16px;
+    font-weight:600;
+    letter-spacing:-.2px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+/* ---------- 滚动区 ---------- */
+.page-scroll{
+    flex:1;
+    min-height:0;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+}
+
+/* ---------- 按钮（iOS 风） ---------- */
+.btn{
+    height:46px;
+    padding:0 18px;
+    border-radius:var(--r-sm);
+    font-size:16px;
+    font-weight:500;
+    letter-spacing:-.2px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    transition:opacity .15s ease;
+}
+.btn.ghost{background:var(--surface-3);color:var(--accent)}
+.btn.solid{background:var(--accent);color:#fff}
+.btn:active{opacity:.65}
+
+.bar-foot{
+    flex:none;
+    display:flex;
+    gap:10px;
+    padding:8px 12px calc(var(--safe-b) + 8px);
+    background:var(--surface);
+    border-top:1px solid var(--line-2);
+}
+.bar-foot .btn{flex:1}
+/* 重要：.bar-foot 自带 display:flex，会盖掉浏览器给 [hidden] 的 display:none，
+   导致「取消 / 确认」这些底栏在列表页也一直显示（还压住内容）。必须显式补一条。 */
+.bar-foot[hidden]{display:none}
+
+/* ---------- 联系人（iOS 分组列表） ---------- */
+.ct-list{padding:8px 12px calc(var(--safe-b) + 20px)}
+.ct-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    width:100%;
+    padding:9px 12px;
+    margin-bottom:6px;
+    border-radius:var(--r-sm);
+    background:var(--surface-solid);
+    text-align:left;
+}
+.ct-row:active{background:var(--surface-2)}
+.ct-row.cur{background:var(--surface-2)}
+.ct-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.ct-nm{
+    font-size:16px;
+    letter-spacing:-.2px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.ct-sub{
+    font-style:normal;
+    font-size:13px;
+    color:var(--muted);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.ct-cur{
+    font-style:normal;
+    font-size:12px;
+    color:var(--accent);
+    font-weight:500;
+}
+.ct-more{
+    width:30px;height:30px;flex:none;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:var(--pill);
+    color:var(--faint);
+}
+.ct-more:active{background:var(--surface-3)}
+
+/* 选成员建群 */
+.ct-row.pick .ct-tick{
+    width:22px;height:22px;flex:none;
+    border-radius:var(--pill);
+    border:1.6px solid var(--faint);
+    display:flex;align-items:center;justify-content:center;
+    color:transparent;
+}
+.ct-row.pick.on .ct-tick{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#fff;
+}
+
+/* 新建联系人：内联卡片，名字旁边直接给「取消 / 确认」 */
+.ct-newbox{
+    padding:14px;
+    margin-top:8px;
+    border-radius:var(--r-sm);
+    background:var(--surface-solid);
+    border:1px solid var(--line);
+}
+.ct-newlb{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    color:var(--muted);
+    margin-bottom:8px;
+}
+.ct-input{
+    width:100%;
+    height:44px;
+    padding:0 14px;
+    border-radius:var(--r-sm);
+    background:var(--field);
+    font-size:16px;
+}
+.ct-input:focus{outline:2px solid var(--accent)}
+.ct-newbtns{display:flex;gap:10px;margin-top:10px}
+.ct-newbtn{
+    flex:1;
+    height:42px;
+    border-radius:var(--r-sm);
+    font-size:15px;
+    font-weight:500;
+}
+.ct-newbtn.ghost{background:var(--surface-3);color:var(--text)}
+.ct-newbtn.solid{background:var(--accent);color:#fff}
+.ct-newbtn:active{opacity:.7}
+
+.ct-empty{
+    display:flex;flex-direction:column;align-items:center;gap:6px;
+    padding:70px 24px;
+    color:var(--muted);
+    text-align:center;
+}
+.ct-empty p{margin:0;font-size:16px;color:var(--ink)}
+.ct-empty span{font-size:13.5px}
+.ct-empty .ico{color:var(--faint)}
+
+/* ---------- 底部动作面板（iOS 分组式） ---------- */
+.sheet-mask{
+    position:fixed;inset:0;z-index:8000;
+    background:rgba(0,0,0,.34);
+    opacity:0;
+    transition:opacity .2s ease;
+    display:flex;
+    align-items:flex-end;
+}
+.sheet-mask.in{opacity:1}
+.sheet-box{
+    width:100%;
+    padding:0 8px calc(var(--safe-b) + 8px);
+    transform:translateY(100%);
+    transition:transform .28s cubic-bezier(.32,.72,0,1);
+}
+.sheet-box.in{transform:none}
+.sheet-title{
+    text-align:center;
+    font-size:13px;
+    color:var(--muted);
+    padding:10px 12px 8px;
+    line-height:1.4;
+}
+.sheet-items{
+    background:var(--surface-solid);
+    border-radius:13px;
+    overflow:hidden;
+}
+.sheet-item{
+    display:flex;align-items:center;gap:12px;
+    width:100%;
+    min-height:52px;
+    padding:12px 16px;
+    font-size:17px;
+    letter-spacing:-.2px;
+    color:var(--ink);
+    border-bottom:1px solid var(--line-2);
+    text-align:left;
+}
+.sheet-item:last-child{border-bottom:none}
+.sheet-item:active{background:var(--surface-2)}
+.sheet-item.danger{color:var(--danger)}
+.sheet-item .ico{color:var(--accent);opacity:.9}
+.sheet-item.danger .ico{color:var(--danger);opacity:1}
+.sheet-cancel{
+    margin-top:8px;
+    width:100%;
+    min-height:52px;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--surface-solid);
+    border-radius:13px;
+    font-size:17px;
+    font-weight:600;
+    letter-spacing:-.2px;
+    color:var(--accent);
+}
+.sheet-cancel:active{background:var(--surface-2)}
+
+/* ---------- 轻提示 ---------- */
+.toast-host{
+    position:fixed;
+    left:0;right:0;
+    bottom:calc(var(--safe-b) + 100px);
+    z-index:9000;
+    display:flex;justify-content:center;
+    pointer-events:none;
+    padding:0 24px;
+}
+.toast{
+    max-width:100%;
+    padding:10px 18px;
+    border-radius:var(--pill);
+    background:rgba(20,20,20,.88);
+    color:#fff;
+    font-size:14px;
+    line-height:1.4;
+    -webkit-backdrop-filter:blur(10px);
+    backdrop-filter:blur(10px);
+    opacity:0;
+    transform:translateY(8px) scale(.96);
+    transition:opacity .2s ease,transform .2s ease;
+}
+.toast.show{opacity:1;transform:none}
+.toast.ok{background:rgba(24,140,72,.94)}
+.toast.warn{background:rgba(190,110,0,.94)}
+.toast.err{background:rgba(220,50,45,.94)}
+
+/* ---------- 主界面（mochi 式手机桌面） ---------- */
+.home-wrap{
+    flex:1;
+    min-height:0;
+    display:flex;
+    flex-direction:column;
+}
+
+/* 顶部：时钟 + 主题键 */
+/* 顶部导航栏：透明，让主界面背景图透出来（用户拍板） */
+.home-nav{
+    flex:none;
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:12px;
+    padding:calc(var(--safe-t) + 14px) 16px 12px;
+    background:transparent;
+    border-bottom:none;
+}
+.home-navbtns{
+    flex:none;
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+.home-navbtn{
+    width:34px;height:34px;
+    border:0;
+    border-radius:var(--pill);
+    background:var(--surface-3);
+    color:var(--text);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+}
+.home-navbtn:active{opacity:.6}
+.home-clock{display:flex;flex-direction:column;gap:1px}
+.home-clock b{
+    font-size:38px;
+    font-weight:600;
+    letter-spacing:-1px;
+    line-height:1;
+    color:var(--text);
+    font-variant-numeric:tabular-nums;
+}
+.home-clock span{font-size:12.5px;color:var(--muted)}
+
+/* 当前联系人卡（点了直接进聊天） */
+.hero-card{flex:none;padding:0 14px 12px}
+.hero-in{
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    border:0;
+    text-align:left;
+    padding:12px 14px;
+    border-radius:var(--r-lg);
+    background:var(--surface-2);
+    cursor:pointer;
+}
+.hero-in:active{opacity:.75}
+.hero-av{
+    width:44px;height:44px;flex:none;
+    border-radius:var(--avatar-radius,50%);
+    background-size:cover;
+    background-position:center;
+    background-color:var(--surface-3);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--muted);
+}
+.hero-av.ph{background-image:none !important}
+.hero-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.hero-txt b{font-size:16.5px;letter-spacing:-.2px;color:var(--text)}
+.hero-txt em{font-style:normal;font-size:12px;color:var(--muted)}
+.hero-go{
+    flex:none;
+    width:28px;height:28px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:var(--pill);
+    color:var(--faint);
+}
+.hero-go .ico{transform:rotate(180deg)}
+
+/* 宫格多页翻页 */
+.home-pages{
+    flex:1;
+    min-height:0;
+    overflow:hidden;
+    display:flex;
+    align-items:flex-start;
+}
+.home-track{
+    display:flex;
+    height:100%;
+    flex:none;                /* 别让 flex 把轨道压扁（整页翻页宽度按像素算） */
+    will-change:transform;
+}
+.home-page{
+    flex:none;
+    height:100%;
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    grid-auto-rows:min-content;
+    align-content:start;
+    gap:18px 6px;
+    padding:6px 14px 10px;
+    box-sizing:border-box;
+}
+.home-app{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+    position:relative;
+    border:0;
+    background:transparent;
+    cursor:pointer;
+}
+/* 桌面图标：纯白底 + 统一小 8px（用户要求去掉渐变背景色） */
+.home-ico{
+    width:49px;
+    height:49px;
+    border-radius:13px;
+    background:#fff;
+    border:1px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--text);
+    box-shadow:0 1px 2px rgba(0,0,0,.06);
+    transition:transform .14s ease;
+}
+.home-app:active .home-ico{transform:scale(.92)}
+.home-ico .ico{stroke-width:1.9}
+.home-nm{
+    font-size:12px;
+    color:var(--ink);
+    letter-spacing:-.1px;
+    text-align:center;
+    line-height:1.2;
+}
+.home-app.soon .home-ico{opacity:.45}
+.home-app.soon .home-nm{color:var(--muted)}
+.home-soon{
+    position:absolute;
+    top:-2px;
+    right:8px;
+    font-style:normal;
+    font-size:8.5px;
+    font-weight:600;
+    letter-spacing:.2px;
+    color:var(--muted);
+    background:var(--surface-3);
+    padding:1px 5px;
+    border-radius:99px;
+}
+
+/* 页面指示点 */
+.home-dots{
+    flex:none;
+    display:flex;
+    justify-content:center;
+    gap:6px;
+    padding:4px 0 10px;
+}
+.home-dot{
+    width:6px;height:6px;
+    border-radius:50%;
+    background:var(--line-2);
+    transition:background .15s;
+}
+.home-dot.on{background:var(--accent)}
+
+/* 底部 dock */
+.home-dock{
+    flex:none;
+    display:flex;
+    gap:4px;
+    margin:0 12px calc(8px + env(safe-area-inset-bottom));
+    padding:8px 6px;
+    border-radius:26px;
+    background:var(--surface);
+    box-shadow:0 1px 2px rgba(0,0,0,.08);
+}
+.home-dockbtn{
+    flex:1;
+    border:0;
+    background:transparent;
+    color:var(--muted);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+    padding:2px 0;
+    cursor:pointer;
+}
+.home-dockbtn span{font-size:10.5px;letter-spacing:-.1px}
+.home-dockbtn:active{opacity:.6}
+.home-dockico{
+    width:40px;height:40px;
+    border-radius:12px;
+    background:#fff;
+    border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--text);
+}
+.home-dockico .ico{stroke-width:1.9}
+
+/* ---------- 图片查看 ---------- */
+.img-viewer{
+    position:fixed;inset:0;z-index:9500;
+    background:rgba(0,0,0,.92);
+    display:flex;align-items:center;justify-content:center;
+    padding:20px;
+}
+.img-viewer img{max-width:100%;max-height:100%;border-radius:var(--r-sm)}
+
+/* ============================================================
+   全局设置页（js/pages/settings.js）
+   ============================================================ */
+.gs-tabs{
+    flex:none;
+    display:flex;
+    gap:6px;
+    padding:10px 14px;
+    background:var(--glass);
+    -webkit-backdrop-filter:blur(20px) saturate(180%);
+    backdrop-filter:blur(20px) saturate(180%);
+    border-bottom:1px solid var(--line-2);
+}
+.gs-tab{
+    flex:1;
+    border:0;
+    background:var(--surface-3);
+    color:var(--text);
+    font-size:13.5px;
+    font-weight:500;
+    padding:8px 0;
+    border-radius:10px;
+    cursor:pointer;
+}
+.gs-tab.on{background:var(--accent);color:#fff}
+.gs-body{
+    /* ★ v30：去掉 --glass-bg 粉蓝绿渐变（那层就是「跟着主题颜色走」的元凶），
+       背景图由 applyPageBg 刷在本容器上，磨砂卡片（.gs-sec）直接盖在图上。
+       ★ v33：左右外边距收窄 → 白卡更宽，和聊天设置一致。 */
+    padding:10px 8px 24px;
+    background:transparent;
+}
+/* ★ 卡片要「实」：用户设了背景图后设置页整页铺图，
+   卡片玻璃太薄就会「文字像抠下来 p 在图上」（2026-10-17 反馈）。
+   现在卡片用更瓷实的白 + 更重的模糊 + 一圈细边，
+   背景图只在卡片缝里透出来，字永远压在实底上。 */
+/* ★ v37（用户 2026-10-18：「外观装扮和主界面设置改成磨砂的，不要有白底」）：
+   原来 background:rgba(255,255,255,.90) —— **几乎不透光**，等于一张白卡，
+   主界面背景图完全透不出来。现在降到 .30，只留磨砂质感，
+   背景图从卡片缝里清晰透上来（字仍压在磨砂上，可读性不受影响）。 */
+.gs-sec{
+    background:rgba(255,255,255,.30);
+    border:1px solid rgba(255,255,255,.55);
+    border-radius:16px;
+    overflow:hidden;
+    margin-bottom:14px;
+    -webkit-backdrop-filter:blur(26px) saturate(180%);
+    backdrop-filter:blur(26px) saturate(180%);
+    box-shadow:0 6px 22px rgba(0,0,0,.09),inset 0 1px 0 rgba(255,255,255,.5);
+}
+html[data-theme="dark"] .gs-sec{
+    background:rgba(40,40,46,.34);
+    border-color:rgba(255,255,255,.14);
+    box-shadow:0 6px 22px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.08);
+}
+.gs-sect{
+    margin:0;
+    padding:10px 16px;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--muted);
+    background:var(--glass-strong);
+    border-bottom:1px solid var(--line-2);
+}
+/* 桌面设置页顶栏也用玻璃 */
+.bar:has(+ .gs-tabs){
+    background:var(--glass);
+    -webkit-backdrop-filter:blur(20px) saturate(180%);
+    backdrop-filter:blur(20px) saturate(180%);
+}
+.gs-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    /* v33：字不要贴着卡片边 → 加大内边距（配合 .gs-body 收窄外边距 = 白卡更宽） */
+    padding:13px 18px;
+    border-bottom:1px solid var(--line);
+}
+/* v33（用户 2026-10-18）：「左边的字往右移 2px，右边的字往左挪 2px」
+   —— 左右控件各向内收 2px，行内文字视觉居中。 */
+.gs-sec .gs-row .gs-lb,.gs-sec .gs-row .gs-lbcol{margin-left:2px}
+.gs-sec .gs-row .gs-rr{margin-right:2px}
+.gs-row:last-child{border-bottom:0}
+.gs-lb{font-size:14.5px;color:var(--text)}
+.gs-rr{display:flex;align-items:center;gap:6px}
+.gs-btn{
+    border:1px solid var(--line-2);
+    background:var(--surface-2);
+    color:var(--text);
+    font-size:13px;
+    padding:6px 12px;
+    border-radius:9px;
+    cursor:pointer;
+    white-space:nowrap;
+}
+.gs-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.gs-btn.danger{background:#ff3b30;border-color:#ff3b30;color:#fff}
+.gs-btn.wide{min-width:104px}
+.gs-seg{
+    border:1px solid var(--line-2);
+    background:var(--surface-2);
+    color:var(--text);
+    font-size:13px;
+    padding:6px 11px;
+    border-radius:9px;
+    cursor:pointer;
+}
+.gs-seg.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.gs-num{font-size:13.5px;color:var(--text);min-width:34px;text-align:center}
+/* ★ 数字输入框（用户 2026-10-17 反馈「功能的字在框的边缘被截断」的直接原因：
+     这个 class 之前完全没有 CSS，<input type=number> 用浏览器默认宽度 + 上下旋钮，
+     把左边的标签列挤到只剩几个像素，看起来就像「字贴着框边被切掉」）。
+     现在定死窄宽度 + 隐藏旋钮 + 居中，并让标签列可压缩不换行。 */
+.gs-numinput{
+    width:52px;
+    flex:none;
+    height:30px;
+    padding:0 4px;
+    border:1px solid var(--line-2);
+    border-radius:8px;
+    background:var(--surface-2);
+    color:var(--text);
+    font-size:13.5px;
+    line-height:28px;
+    text-align:center;
+    -moz-appearance:textfield;
+    appearance:textfield;
+}
+.gs-numinput:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.gs-numinput::-webkit-outer-spin-button,
+.gs-numinput::-webkit-inner-spin-button{
+    -webkit-appearance:none;
+    margin:0;
+}
+/* 触屏端输入类字号必须 ≥16px，否则 iOS 聚焦时会强制 zoom（standalone 下会整页上移） */
+@media (pointer:coarse){
+    .gs-numinput{font-size:16px;height:32px;line-height:30px}
+}
+.gs-unit{
+    flex:none;
+    min-width:14px;
+    font-size:12px;
+    color:var(--muted);
+}
+/* 标签列：允许收缩、过长省略，绝不把控件挤出框 */
+.gs-row .gs-lbcol{flex:1 1 auto;min-width:0;overflow:hidden}
+.gs-row .gs-lb{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* 右侧控件组不被压缩 */
+.gs-row .gs-rr{flex:none}
+/* 主界面背景那一行：缩略图 + 名字并排（不再把大图贴在功能名下面） */
+.gs-bgcell{display:flex;align-items:center;gap:9px;min-width:0;flex:1 1 auto}
+.gs-bgthumb{
+    width:38px;height:38px;flex:none;
+    border-radius:9px;
+    background:var(--surface-2);
+    box-shadow:inset 0 0 0 1px var(--line-2);
+    background-size:cover;
+    background-position:center;
+}
+.gs-bgthumb.has{box-shadow:inset 0 0 0 1px var(--line-2),0 1px 3px rgba(0,0,0,.06)}
+.gs-dim{font-size:13px;color:var(--muted)}
+.gs-note{margin:0;padding:10px 14px;font-size:12px;color:var(--muted)}
+.bar-spacer{width:38px;flex:none}
+
+/* ---------- 主界面背景图 + 磨砂遮罩 ---------- */
+.home-wrap{
+    position:relative;
+}
+/* 白色蒙版：用 opacity 控制「背景图浓度」，不用 filter（filter 会洗白子元素） */
+.home-bgveil{
+    position:absolute;
+    inset:0;
+    z-index:0;
+    background:var(--bg);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .2s ease;
+}
+.home-wrap > *:not(.home-bgveil){
+    position:relative;
+    z-index:1;
+}
+/* 有背景图时各层用主题磨砂底色，透出底图。
+   ★ 用 class 而不是 [style*="--home-bg:1"] —— setProperty 序列化后是
+   「--home-bg: 1」（带空格），属性选择器根本匹配不上。 */
+.home-wrap.has-bg .home-dock,
+.home-wrap.has-bg .hero-in{
+    background:var(--theme-surface, var(--surface));
+}
+/* 顶栏永远透明透出背景图（用户拍板 2026-10-17） */
+.home-wrap.has-bg .home-nav{background:transparent}
+.home-customimg{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}
+
+/* ============================================================
+   全局底部导航（磨砂悬浮胶囊，Instagram 风）
+   ============================================================ */
+.dock{
+    position:fixed;
+    left:50%;
+    bottom:calc(10px + env(safe-area-inset-bottom));
+    transform:translateX(-50%) translateY(140%);
+    z-index:60;
+    display:flex;
+    gap:2px;
+    padding:7px 9px;
+    border-radius:30px;
+    /* 磨砂清透 */
+    background:rgba(255,255,255,.62);
+    -webkit-backdrop-filter:blur(22px) saturate(1.7);
+    backdrop-filter:blur(22px) saturate(1.7);
+    border:1px solid rgba(255,255,255,.55);
+    box-shadow:0 8px 30px rgba(0,0,0,.14),
+               inset 0 1px 0 rgba(255,255,255,.6);
+    transition:transform .26s cubic-bezier(.32,.72,0,1), opacity .2s;
+    opacity:0;
+    pointer-events:none;
+}
+.dock.show{
+    transform:translateX(-50%) translateY(0);
+    opacity:1;
+    pointer-events:auto;
+}
+.dock.kb{transform:translateX(-50%) translateY(160%);opacity:0;pointer-events:none}
+.dock-btn{
+    position:relative;
+    flex:1 0 auto;
+    border:0;background:transparent;
+    color:var(--muted);
+    display:flex;flex-direction:column;align-items:center;gap:2px;
+    padding:3px 8px;border-radius:16px;cursor:pointer;
+    transition:color .15s, transform .12s;
+}
+.dock-btn .dock-ico{display:flex;align-items:center;justify-content:center;width:26px;height:26px}
+.dock-btn .dock-ico .ico{stroke-width:1.8}
+.dock-btn span{font-size:10px;font-weight:500;letter-spacing:-.1px;white-space:nowrap}
+.dock-btn.on{color:var(--accent)}
+.dock-btn.on .dock-ico{
+    background:var(--accent);color:#fff;border-radius:11px;
+    box-shadow:0 4px 12px color-mix(in srgb, var(--accent) 46%, transparent);
+}
+.dock-btn.on span{font-weight:700}
+.dock-btn:active{transform:scale(.92)}
+/* 深色：磨砂用半透明深底 */
+[data-theme="dark"] .dock{
+    background:rgba(28,28,30,.6);
+    border-color:rgba(255,255,255,.14);
+    box-shadow:0 8px 30px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.12);
+}
+[data-theme="dark"] .dock-btn.on .dock-ico{color:#fff}
+
+/* 主界面底部让出 dock 的空间（避免宫格被压住） */
+.home-wrap{position:relative;display:flex;flex-direction:column;height:100%;padding-bottom:calc(78px + env(safe-area-inset-bottom))}
+.home-pages{flex:1}
+.home-dots{margin-bottom:calc(2px + env(safe-area-inset-bottom))}
+
+/* ---------- 设置页：主题卡片 / 背景预览 / 输入 ---------- */
+.gs-desc{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
+.gs-hint{margin:0;padding:0 14px 12px;font-size:11.5px;color:var(--muted);line-height:1.5}
+.gs-btn.sm{width:32px;padding:0;text-align:center;font-size:17px;line-height:28px;height:30px}
+/* v33：sm 是给「−/+」方块用的（固定 32x30）。文字按钮千万别加 sm，
+   否则「清图片缓存」被挤进 32px 里、字溢出成一坨（用户 2026-10-18 截图）。
+   ghost = 文字按钮：透明底、细边。 */
+.gs-btn.ghost{
+    background:transparent;
+    border-color:var(--line-2);
+    color:var(--muted);
+    font-weight:500;
+}
+.gs-btn.ghost:active{background:var(--surface-3)}
+.dm-break-actions .gs-btn{padding:7px 12px;font-size:12.5px;line-height:1.2}
+.gs-sw{
+    width:48px;height:28px;
+    border:0;border-radius:99px;
+    background:var(--surface-3);
+    position:relative;
+    cursor:pointer;
+}
+.gs-sw i{
+    position:absolute;top:2px;left:2px;
+    width:24px;height:24px;border-radius:50%;
+    background:#fff;
+    box-shadow:0 1px 3px rgba(0,0,0,.25);
+    transition:transform .18s ease;
+}
+.gs-sw.on{background:var(--accent)}
+.gs-sw.on i{transform:translateX(20px)}
+.gs-input{
+    width:150px;
+    border:1px solid var(--line-2);
+    background:var(--surface-2);
+    color:var(--text);
+    font-size:12.5px;
+    padding:6px 9px;
+    border-radius:8px;
+}
+.gs-bgprev{
+    height:120px;
+    background:var(--surface-3) center/cover no-repeat;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--muted);font-size:12.5px;
+    margin-bottom:4px;
+}
+.gs-themes{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:8px;
+    padding:12px 14px 14px;
+}
+.gs-theme{
+    border:1px solid var(--line);
+    background:var(--surface-2);
+    border-radius:12px;
+    padding:9px 4px 7px;
+    display:flex;flex-direction:column;align-items:center;gap:6px;
+    cursor:pointer;
+}
+.gs-theme.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.gs-theme-dots{display:flex;gap:3px}
+.gs-theme-dots i{width:11px;height:11px;border-radius:50%;border:1px solid rgba(0,0,0,.08)}
+.gs-theme b{font-size:11.5px;font-weight:600;color:var(--text)}
+.gs-lbcol{display:flex;flex-direction:column;min-width:0}
+
+/* ---------- 桌面设置分区：可折叠才有交互套件 ---------- */
+.gs-sec.fold{padding:0 14px}
+.gs-sec.fold.open{padding-bottom:12px}
+.gs-sec .gs-sect{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    width:100%;
+    padding:13px 2px 8px;
+    margin:0;
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink);
+    cursor:default;
+}
+.gs-sec.fold .gs-sect{padding:13px 2px;cursor:pointer}
+.gs-chev{
+    display:inline-flex;
+    color:var(--muted);
+    transform:rotate(-90deg);
+    transition:transform .22s ease;
+}
+.gs-sec.fold.open .gs-chev{transform:rotate(90deg)}
+.gs-sec.fold .gs-secbd{display:none}
+.gs-sec.fold.open .gs-secbd{display:block}
+/* 排版整理：行间细分隔 */
+.gs-sec .gs-row + .gs-row,
+.gs-sec .gs-row + .gs-block,
+.gs-sec .gs-block + .gs-row{
+    border-top:1px solid var(--line-2);
+}
+/* v35（用户 2026-10-18：「圈起来的这些…像被截断了一样」）：
+   原来这里是 padding:10px 0 —— **左右 0**，行里的字直接贴卡片边，
+   而分区标题（.gs-sect）却有 16px 内边距，两者对不齐，看着就像被截断。
+   现在行内边距跟标题对齐（16px），再按用户要求整体内收 2px。 */
+.gs-sec .gs-row{padding:11px 16px}
+
+/* ---------- 主页小组件页（仿小手机第 1 页，整体翻页） ---------- */
+.home-page.widgets{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    padding:10px 14px;
+    overflow-y:auto;
+}
+.w-couple{
+    display:flex;flex-direction:column;align-items:center;gap:4px;
+    padding:18px 14px 14px;
+    border-radius:22px;
+    background:var(--glass);
+    -webkit-backdrop-filter:blur(18px) saturate(170%);
+    backdrop-filter:blur(18px) saturate(170%);
+    border:1px solid rgba(255,255,255,.5);
+    box-shadow:0 8px 26px rgba(0,0,0,.07);
+    cursor:pointer;
+    text-align:center;
+}
+html[data-theme="dark"] .w-couple{border-color:rgba(255,255,255,.1)}
+.w-avs{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.w-av{
+    width:54px;height:54px;border-radius:50%;
+    background-size:cover;background-position:center;
+    background-color:var(--surface-3);
+    border:2px solid #fff;
+    box-shadow:0 2px 8px rgba(0,0,0,.12);
+}
+html[data-theme="dark"] .w-av{border-color:rgba(255,255,255,.25)}
+.w-heart{
+    width:26px;height:26px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--accent);color:#fff;
+    margin:0 -4px;z-index:1;flex:none;
+    box-shadow:0 2px 8px rgba(0,0,0,.15);
+}
+.w-days{font-size:30px;font-weight:700;letter-spacing:-1px;color:var(--ink);line-height:1.1;font-variant-numeric:tabular-nums}
+.w-sub{font-size:12px;color:var(--muted)}
+.w-edit{font-size:10.5px;color:var(--faint);margin-top:4px}
+.w-status{
+    border-radius:20px;
+    background:var(--glass);
+    -webkit-backdrop-filter:blur(18px) saturate(170%);
+    backdrop-filter:blur(18px) saturate(170%);
+    border:1px solid rgba(255,255,255,.5);
+    box-shadow:0 8px 26px rgba(0,0,0,.06);
+    padding:12px 14px;
+    display:flex;flex-direction:column;gap:10px;
+}
+html[data-theme="dark"] .w-status{border-color:rgba(255,255,255,.1)}
+.w-stt{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--muted)}
+.w-strow{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--ink)}
+.w-strow em{margin-left:auto;font-style:normal;font-size:11.5px;color:#1a9e54}
+/* 装扮 sheet 里的色点 */
+.look-dot{width:18px;height:18px;border-radius:50%;display:inline-block;margin-right:2px;flex:none;border:1px solid rgba(0,0,0,.08)}

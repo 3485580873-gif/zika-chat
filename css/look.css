@@ -1,0 +1,122 @@
+/* ============================================================
+   look.css — 外观装扮 / 主题配色（颜色展示框）
+   ------------------------------------------------------------
+   用户 2026-10-17 拍板：
+     · 每张卡 = 一整块该主题的渐变色（像 iOS 墙纸缩略图那样铺满），
+       底部压一条小标签写名字，选中态右上角一个对勾。
+     · **名字只用浅色系叫法**（浅粉 / 浅蓝 / 浅黄…），不抄外部 App 的命名。
+     · 卡要小 —— 原来 2 列 + aspect-ratio 1/1 每张快半屏宽，
+       用户原话「这个主题配色展示框你搞这么大干嘛」。
+       现在 4 列紧凑网格，一屏能看完 8 套。
+   ============================================================ */
+
+.look-body{padding:12px 8px 30px}   /* v33：白卡更宽 */
+/* ★ v37：外观装扮行距放松，别挤在一起 */
+.look-body .gs-sec{margin-bottom:16px}
+.look-body .gs-row{padding:14px 16px}
+.look-body .gs-sect{padding:13px 16px}
+
+/* ★ v37：展示框改小 —— 4 列 + 3/4 竖比例太大，占掉整屏（用户 v37：「主题配色展示框还要小」）。
+   改成 5 列 + 1:1 方块，像真正的色板小样，一屏能看到全部主题。 */
+.look-grid{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:8px;
+}
+
+/* ---------- 一张主题卡 = 一个颜色展示框 ---------- */
+.look-card{
+    position:relative;
+    display:block;
+    width:100%;
+    aspect-ratio:1 / 1;          /* ★ v37 改成正方形小色板 */
+    padding:0;
+    border:0;
+    border-radius:13px;
+    overflow:hidden;
+    cursor:pointer;
+    background:none;
+    -webkit-tap-highlight-color:transparent;
+    transition:transform .16s ease, box-shadow .18s ease;
+    box-shadow:0 2px 8px rgba(15,23,42,.09);
+}
+.look-card:active{transform:scale(.955)}
+
+/* 整块铺满主题渐变 —— 这就是「颜色展示框」的本体 */
+.look-fill{
+    position:absolute;
+    inset:0;
+    background:linear-gradient(150deg, var(--lc1,#eee) 0%, var(--lc2,#ccc) 100%);
+}
+/* 上面再压一层柔光，让色块不那么死板 */
+.look-fill::after{
+    content:'';
+    position:absolute;
+    inset:0;
+    background:
+        radial-gradient(120% 90% at 15% 8%, rgba(255,255,255,.5), rgba(255,255,255,0) 60%),
+        radial-gradient(90% 80% at 95% 100%, rgba(0,0,0,.08), rgba(0,0,0,0) 55%);
+}
+
+/* 三个小色片：让人看出这套主题由哪些颜色组成（小卡上更小一点） */
+.look-chips{
+    position:absolute;
+    left:7px;
+    bottom:24px;
+    display:flex;
+    gap:3px;
+}
+.look-chips i{
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    border:1.2px solid rgba(255,255,255,.9);
+    box-shadow:0 1px 3px rgba(15,23,42,.18);
+}
+
+/* 底部小标签（半透明黑条压色块上，任何底色都看得清） */
+.look-nm{
+    position:absolute;
+    left:3px;
+    right:3px;
+    bottom:3px;
+    padding:1px 3px;
+    border-radius:99px;
+    font-size:9px;
+    font-weight:700;
+    letter-spacing:0;
+    text-align:center;
+    color:#fff;
+    background:rgba(20,20,24,.32);
+    -webkit-backdrop-filter:blur(8px) saturate(150%);
+    backdrop-filter:blur(8px) saturate(150%);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}
+
+/* 选中态：白描边 + 右上对勾 */
+.look-card.on{
+    box-shadow:
+        0 0 0 2px #fff,
+        0 0 0 3.5px var(--lac,var(--accent)),
+        0 4px 12px rgba(15,23,42,.16);
+}
+.look-tick{
+    position:absolute;
+    top:5px;
+    right:5px;
+    width:16px;
+    height:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    color:#fff;
+    background:var(--lac,var(--accent));
+    box-shadow:0 1px 5px rgba(15,23,42,.22);
+}
+
+/* 深色模式下（用户当前只提供浅色系主题，这里只是兜底别糊掉） */
+html[data-theme="dark"] .look-card{box-shadow:0 2px 8px rgba(0,0,0,.4)}
+html[data-theme="dark"] .look-nm{background:rgba(20,20,24,.5)}

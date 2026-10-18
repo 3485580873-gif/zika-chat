@@ -1,0 +1,844 @@
+/* ============================================================
+   settings.css — 聊天设置页 / 通用表单控件
+   ------------------------------------------------------------
+   这套 cs-* 控件（开关、分段、色板、数字、卡片）是通用的，
+   字卡库页面也复用，保证两页观感一致。
+   ============================================================ */
+
+/* ---------- 栏目切换 ---------- */
+.cs-tabs{
+    flex:none;
+    display:flex;
+    gap:6px;
+    padding:8px 12px 10px;
+    border-bottom:1px solid var(--line);
+    background:var(--surface);
+}
+.cs-tab{
+    flex:1;
+    border:0;
+    background:transparent;
+    color:var(--muted);
+    font-size:13px;
+    font-weight:600;
+    padding:8px 4px;
+    border-radius:11px;
+    cursor:pointer;
+    transition:background .15s,color .15s;
+}
+.cs-tab.on{background:var(--accent);color:#fff}
+.cs-tab:active{opacity:.7}
+
+/* ---------- 主体 ---------- */
+/* v33（用户 2026-10-18：「字你不要放在最边缘…白色的框宽一点」）：
+   左右外边距收窄 → 白卡更宽；卡片内边距加厚 → 文字离边缘远一点。
+   原来 .cs-body 12px + .cs-sec 14px = 文字距屏幕边 26px，看着就贴边。 */
+.cs-body{padding:8px 8px 24px}
+.cs-foot{
+    flex:none;
+    padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+    border-top:1px solid var(--line);
+    background:var(--surface);
+}
+.cs-footbtn{
+    width:100%;
+    border:0;
+    background:var(--accent);
+    color:#fff;
+    font-size:15px;
+    font-weight:600;
+    padding:12px;
+    border-radius:14px;
+    cursor:pointer;
+}
+.cs-footbtn:active{opacity:.7}
+
+/* ---------- 分区 ---------- */
+.cs-sec{
+    background:var(--surface);
+    border-radius:16px;
+    /* v33：上下留够呼吸，字不贴卡片边 */
+    padding:10px 18px 14px;
+    margin-bottom:12px;
+    border:1px solid var(--line);
+}
+.cs-h3{
+    font-size:12px;
+    font-weight:700;
+    color:var(--muted);
+    letter-spacing:.4px;
+    margin:12px 0 6px;
+}
+.cs-tip{
+    font-size:11.5px;
+    color:var(--muted);
+    line-height:1.5;
+    margin:0 0 8px;
+}
+
+/* ---------- 一行设置 ---------- */
+.cs-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:11px 0;
+    border-bottom:1px solid var(--line);
+}
+.cs-row:last-child{border-bottom:0}
+.cs-txt{flex:1;min-width:0}
+.cs-txt b{display:block;font-size:14.5px;color:var(--text);font-weight:500}
+.cs-txt span{display:block;font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.4}
+.cs-ctrl{flex:none;display:flex;align-items:center;gap:6px}
+
+/* ---------- 开关 ---------- */
+.cs-sw{
+    position:relative;
+    width:50px;
+    height:30px;
+    flex:none;
+    border:0;
+    border-radius:99px;
+    background:var(--surface-3);
+    cursor:pointer;
+    transition:background .2s;
+    padding:0;
+}
+.cs-sw i{
+    position:absolute;
+    top:3px;
+    left:3px;
+    width:24px;
+    height:24px;
+    border-radius:50%;
+    background:#fff;
+    box-shadow:0 1px 3px rgba(0,0,0,.22);
+    transition:transform .22s cubic-bezier(.32,.72,0,1);
+}
+.cs-sw.on{background:#34c759}
+.cs-sw.on i{transform:translateX(20px)}
+
+/* 色块形态（背景色 / 字色板） */
+.cs-sw.at{
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    background:transparent;
+    border:2px solid transparent;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+}
+.cs-sw.at i{
+    position:static;
+    width:26px;
+    height:26px;
+    border-radius:50%;
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,.12);
+    transform:none;
+    background-size:cover;
+}
+.cs-sw.at.on{border-color:var(--accent)}
+.cs-sw.at:active{opacity:.6}
+
+/* ---------- 分段选择 ---------- */
+.cs-seg{
+    display:inline-flex;
+    background:var(--surface-3);
+    border-radius:11px;
+    padding:2px;
+    gap:2px;
+}
+.cs-seg.wide{display:flex;width:100%}
+.cs-segbtn{
+    flex:1;
+    border:0;
+    background:transparent;
+    color:var(--text);
+    font-size:13px;
+    padding:7px 12px;
+    border-radius:9px;
+    cursor:pointer;
+    white-space:nowrap;
+}
+.cs-segbtn.on{background:var(--surface);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.1)}
+.cs-segbtn:active{opacity:.6}
+
+/* ---------- 按钮 ---------- */
+.cs-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    border:0;
+    background:var(--surface-3);
+    color:var(--text);
+    font-size:13px;
+    font-weight:500;
+    padding:8px 12px;
+    border-radius:11px;
+    cursor:pointer;
+    white-space:nowrap;
+}
+.cs-btn:active{opacity:.6}
+.cs-btn.ghost{background:transparent;color:var(--muted);box-shadow:inset 0 0 0 1px var(--line-2)}
+.cs-btn.primary{background:var(--accent);color:#fff}
+.cs-btn.wide{width:100%;justify-content:center;margin-top:8px}
+
+/* ---------- 头像卡 ---------- */
+.cs-avcard{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:14px 0;
+    border-bottom:1px solid var(--line);
+}
+.cs-avcard:last-child{border-bottom:0}
+.cs-avprev{
+    position:relative;
+    /* 头像框调大后预览框也要跟着变大（行内 style 会覆盖宽高） */
+    width:62px;
+    height:62px;
+    flex:none;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+.cs-avimg{
+    width:var(--chat-avatar-size,38px);
+    height:var(--chat-avatar-size,38px);
+    flex:none;
+    border-radius:50%;
+    background-size:cover;
+    background-position:center;
+    background-color:var(--surface-3);
+}
+/* 头像框预览：--cs-frame-size/x/y 由 chat-settings.js 按当前编辑的是「我」还是「TA」写入 */
+.cs-avframe{
+    position:absolute;
+    left:50%;
+    top:50%;
+    width:var(--cs-frame-size,30px);
+    height:var(--cs-frame-size,30px);
+    transform:translate(calc(-50% + var(--cs-frame-x,0px)), calc(-50% + var(--cs-frame-y,0px)));
+    background-size:100% 100%;
+    background-position:center;
+    background-repeat:no-repeat;
+    pointer-events:none;
+    z-index:2;
+}
+.cs-avside{flex:1;min-width:0}
+.cs-name{display:flex;flex-direction:column;gap:5px;margin-bottom:8px}
+.cs-namelb{font-size:12px;color:var(--muted)}
+.cs-nameinput{
+    width:100%;
+    border:0;
+    background:var(--surface-3);
+    color:var(--text);
+    font-size:15px;
+    font-weight:600;
+    padding:8px 10px;
+    border-radius:10px;
+}
+.cs-nameinput:focus{outline:2px solid var(--accent)}
+.cs-avbtns{display:flex;gap:6px;flex-wrap:wrap}
+
+/* ---------- 背景预览 ---------- */
+.cs-bgprev{
+    height:96px;
+    border-radius:14px;
+    background-size:cover;
+    background-position:center;
+    border:1px solid var(--line);
+    display:flex;
+    align-items:flex-end;
+    padding:10px;
+    margin:10px 0;
+}
+.cs-bgprev span{
+    font-size:12px;
+    color:#fff;
+    background:rgba(0,0,0,.45);
+    padding:3px 8px;
+    border-radius:8px;
+    backdrop-filter:blur(6px);
+    -webkit-backdrop-filter:blur(6px);
+}
+
+/* ---------- 块（色板 / 输入） ---------- */
+.cs-block{padding:12px 0;border-top:1px solid var(--line)}
+.cs-blockt{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    color:var(--muted);
+    margin-bottom:8px;
+}
+.cs-swatches{display:flex;flex-wrap:wrap;gap:8px}
+/* 块标题 + 右侧按钮（气泡代码那块用） */
+.cs-blockrow{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+}
+.cs-blockrow .cs-blockt{margin-bottom:0}
+/* 概率区里的「最少/最多条数」行 */
+.cs-probrow{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:6px 0;
+}
+.cs-problb{font-size:13px;color:var(--text)}
+.cs-colorrow{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-top:10px;
+    font-size:13px;
+    color:var(--text);
+}
+.cs-colorrow input[type=color]{
+    width:44px;height:30px;border:0;background:transparent;padding:0;cursor:pointer;
+}
+
+/* ---------- 字体 ---------- */
+.cs-fontprev{
+    background:var(--surface-3);
+    border-radius:12px;
+    padding:12px 14px;
+    margin:10px 0;
+}
+.cs-fontprev b{display:block;font-size:11px;color:var(--muted);margin-bottom:4px}
+.cs-fontprev p{
+    margin:0;
+    font-size:19px;
+    color:var(--text);
+    line-height:1.5;
+}
+.cs-numrow{display:flex;align-items:center;gap:6px}
+.cs-mini{
+    width:30px;height:30px;
+    border:0;border-radius:9px;
+    background:var(--surface-3);
+    color:var(--text);
+    font-size:17px;
+    cursor:pointer;
+}
+.cs-mini:active{opacity:.6}
+.cs-num{
+    width:56px;
+    border:0;
+    background:var(--surface-3);
+    color:var(--text);
+    font-size:15px;
+    text-align:center;
+    padding:7px 4px;
+    border-radius:9px;
+}
+.cs-num:focus{outline:2px solid var(--accent)}
+.cs-unit{font-size:12px;color:var(--muted)}
+/* 字体链接输入行 */
+.cs-row2{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.cs-input{
+    flex:1;
+    min-width:120px;
+    border:1px solid var(--line-2);
+    background:var(--bg);
+    color:var(--text);
+    font-size:13px;
+    padding:9px 11px;
+    border-radius:10px;
+}
+.cs-input:focus{outline:2px solid var(--accent)}
+.cs-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.cs-chip{
+    border:0;
+    background:var(--surface-3);
+    color:var(--text);
+    font-size:13px;
+    padding:6px 12px;
+    border-radius:99px;
+    cursor:pointer;
+}
+.cs-chip.on{background:var(--accent);color:#fff}
+
+/* ---------- 概率 ---------- */
+.cs-prob{padding:10px 0;border-top:1px solid var(--line)}
+.cs-bar{
+    height:6px;
+    background:var(--surface-3);
+    border-radius:99px;
+    overflow:hidden;
+    margin-top:10px;
+}
+.cs-bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+
+/* ---------- 气泡 CSS ---------- */
+.cs-bubprev{
+    background:var(--surface-3);
+    border-radius:12px;
+    padding:14px 12px;
+    margin:10px 0;
+}
+.cs-bubprev .msg{margin-bottom:10px}
+.cs-bubprev .msg:last-child{margin-bottom:0}
+.cs-css{
+    width:100%;
+    border:1px solid var(--line-2);
+    background:var(--bg);
+    color:var(--text);
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    font-size:12px;
+    line-height:1.55;
+    padding:10px;
+    border-radius:10px;
+    resize:vertical;
+}
+.cs-css:focus{outline:2px solid var(--accent)}
+.cs-demo{
+    display:flex;align-items:center;gap:8px;
+    padding:10px 0 4px;
+    border-top:1px solid var(--line);
+}
+.cs-demo-lb{font-size:11.5px;color:var(--muted)}
+
+/* ---------- 危险区 ---------- */
+.cs-warn{
+    font-size:12px;
+    color:#ff3b30;
+    margin:6px 0 0;
+}
+.cs-danger{
+    margin-top:12px;
+    padding-top:12px;
+    border-top:1px solid var(--line);
+}
+.cs-del{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    border:0;
+    background:rgba(255,59,48,.1);
+    color:#ff3b30;
+    font-size:14px;
+    font-weight:500;
+    padding:10px 14px;
+    border-radius:12px;
+    cursor:pointer;
+}
+.cs-del:active{opacity:.6}
+.cs-danger span{display:block;font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.5}
+
+/* ---------- 数据 ---------- */
+.cs-databox{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    background:var(--surface-3);
+    border-radius:12px;
+    padding:14px;
+    margin-bottom:10px;
+}
+.cs-databox b{font-size:26px;color:var(--text)}
+.cs-databox span{font-size:12.5px;color:var(--muted)}
+
+/* ---------- 折叠控件（字色 / 气泡色用，收起来不占地方） ---------- */
+.cs-fold{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    width:100%;
+    border:0;
+    background:var(--surface-3);
+    color:var(--text);
+    font-size:13.5px;
+    font-weight:500;
+    padding:11px 13px;
+    border-radius:11px;
+    cursor:pointer;
+    text-align:left;
+}
+.cs-fold:active{opacity:.65}
+.cs-fold i{
+    margin-left:auto;
+    flex:none;
+    width:8px;height:8px;
+    border-right:1.8px solid var(--muted);
+    border-bottom:1.8px solid var(--muted);
+    transform:rotate(45deg);
+    transition:transform .18s ease;
+}
+.cs-fold.on i{transform:rotate(225deg)}
+.cs-foldbd{
+    display:none;
+    padding:10px 2px 4px;
+}
+.cs-foldbd.on{display:block}
+.cs-foldbd .cs-swatches{margin-bottom:2px}
+/* 折叠里的两个子标题（我方 / 对方） */
+.cs-subt{
+    font-size:12px;
+    font-weight:600;
+    color:var(--muted);
+    margin:10px 0 7px;
+}
+.cs-subt:first-child{margin-top:0}
+
+/* 气泡代码「已应用 / 未应用」小标 */
+.cs-applied{
+    align-self:center;
+    font-size:11.5px;
+    color:var(--accent);
+    font-weight:600;
+}
+.cs-applied.off{color:var(--muted);font-weight:400}
+
+/* ============================================================
+   磨砂清透（用户要求：整个网站都要这种质感）
+   ============================================================ */
+.cs-body{
+    background:var(--glass-bg);
+    background-attachment:fixed;
+}
+/* 顶栏 / 栏目切换 / 底部操作条：半透明玻璃 */
+.bar:has(+ .cs-tabs),
+.cs-tabs,
+.cs-foot{
+    background:var(--glass);
+    -webkit-backdrop-filter:blur(20px) saturate(180%);
+    backdrop-filter:blur(20px) saturate(180%);
+}
+.cs-tabs{border-bottom:1px solid var(--line-2)}
+.cs-foot{border-top:1px solid var(--line-2)}
+/* 卡片：更瓷实的白 + 重模糊，背景图只在卡片缝里透出来，
+   字永远压在实底上（用户 2026-10-17：文字像抠图 p 在上面） */
+.cs-sec{
+    background:rgba(255,255,255,.90);
+    -webkit-backdrop-filter:blur(22px) saturate(170%);
+    backdrop-filter:blur(22px) saturate(170%);
+    border:1px solid rgba(255,255,255,.85);
+    box-shadow:0 6px 22px rgba(0,0,0,.07);
+}
+html[data-theme="dark"] .cs-sec{
+    background:rgba(34,34,38,.90);
+    border-color:rgba(255,255,255,.12);
+}
+/* 头像卡 / 背景预览这些内层块也跟着轻磨砂 */
+.cs-avcard,
+.cs-bgprev,
+.cs-fontprev,
+.cs-bubprev,
+.cs-databox{
+    background:var(--glass-strong);
+    border-color:transparent;
+}
+/* OSS 状态点 */
+.cs-ok,.gs-ok{color:#1a9e54;font-weight:600}
+.cs-off,.gs-off{color:var(--muted);font-weight:500}
+
+/* ---------- 分区标题：可折叠的才有交互套件 ---------- */
+.cs-sec .cs-h3{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    width:100%;
+    margin:0;
+    /* v33：原来 12px 2px 8px —— 2px 的左右内边距让标题几乎贴着卡片边 */
+    padding:12px 0 8px;
+    font-size:13px;
+    color:var(--ink);
+    cursor:default;
+}
+.cs-sec .cs-h3 span{font-weight:700;letter-spacing:.2px}
+.cs-sec.fold .cs-h3{
+    padding:13px 0;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+}
+.cs-chev{
+    display:inline-flex;
+    color:var(--muted);
+    transform:rotate(-90deg);           /* 收起：箭头朝下 */
+    transition:transform .22s ease;
+}
+.cs-sec.fold.open .cs-chev{transform:rotate(90deg)}   /* 展开：箭头朝上 */
+.cs-sec.fold .cs-secbd{display:none}
+.cs-sec.fold.open .cs-secbd{display:block}
+/* 折叠后卡片不再有大内边距 */
+.cs-sec.fold{padding:2px 18px}
+.cs-sec.fold.open{padding-bottom:14px}
+
+/* ---------- 排版整理：行与行之间加细分隔，看着不糊成一团 ---------- */
+.cs-sec .cs-row + .cs-row,
+.cs-sec .cs-row + .cs-block,
+.cs-sec .cs-block + .cs-row,
+.cs-sec .cs-block + .cs-block{
+    border-top:1px solid var(--line-2);
+    padding-top:8px;
+    margin-top:4px;
+}
+.cs-sec .cs-row{padding:11px 0 10px}
+.cs-sec .cs-row .cs-txt b{font-size:14px;font-weight:600;color:var(--ink)}
+.cs-sec .cs-row .cs-txt span{font-size:11.5px;color:var(--muted);margin-top:2px}
+/* v33：这些小灰标签（头像快捷档位 / 我的头像框）原来紧贴上一行，
+   看着像被截断。上下给足间距 + 行高放开。 */
+.cs-sec .cs-blockt{
+    display:block;
+    font-size:11.5px;
+    font-weight:700;
+    color:var(--muted);
+    letter-spacing:.3px;
+    line-height:1.6;
+    margin:10px 0 10px;
+}
+
+/* 底栏图标颜色的小色块（此前没有样式，一直 0 尺寸看不见） */
+.cs-swatchbtn{
+    display:inline-block;
+    width:24px;height:24px;
+    border-radius:50%;
+    border:2px solid rgba(255,255,255,.9);
+    box-shadow:0 0 0 1px var(--line), 0 1px 4px rgba(0,0,0,.12);
+    vertical-align:middle;
+    margin-right:10px;
+    flex:none;
+}
+.cs-ctrl{display:flex;align-items:center;justify-content:flex-end}
+
+/* ============================================================
+   v26 — 数据管理（图一）+ 云端同步设置浮层（图二）
+   ============================================================ */
+
+/* ---------- 数据管理大卡 ---------- */
+.dm-card{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    width:100%;
+    padding:13px 14px;
+    margin:0;
+    border:0;
+    border-radius:14px;
+    background:rgba(140,140,150,.08);
+    text-align:left;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+    transition:background .15s ease,transform .12s ease;
+}
+.dm-card + .dm-card{margin-top:8px}
+.dm-card:active{transform:scale(.985);background:rgba(140,140,150,.14)}
+.dm-ico{
+    flex:none;
+    width:42px;height:42px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:12px;
+    color:#fff;
+    background:linear-gradient(150deg,var(--accent,#7d7d86),rgba(0,0,0,.25));
+    box-shadow:0 3px 10px rgba(15,23,42,.14);
+}
+.dm-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.dm-tx b{font-size:14.5px;font-weight:600;color:var(--ink)}
+.dm-tx i{
+    font-style:normal;
+    font-size:11.5px;
+    color:var(--muted);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.dm-rr{flex:none;display:flex;align-items:center;gap:6px;color:var(--faint)}
+
+/* ---------- 存储用量进度条（v29：浏览器真实配额） ---------- */
+.dm-card.usage{flex-wrap:wrap}
+.dm-usage-bar{
+    flex:0 0 100%;
+    width:100%;
+    height:8px;
+    margin-top:11px;
+    border-radius:99px;
+    background:rgba(140,140,150,.20);
+    overflow:hidden;
+}
+html[data-theme="dark"] .dm-usage-bar{background:rgba(255,255,255,.14)}
+.dm-usage-fill{
+    height:100%;
+    width:0;
+    border-radius:99px;
+    background:linear-gradient(90deg,var(--accent,#7d7d86),rgba(125,125,134,.55));
+    transition:width .45s ease;
+}
+
+/* ---------- 存储用量分项明细（v30） ---------- */
+.dm-break{
+    flex:0 0 100%;
+    width:100%;
+    margin-top:12px;
+    padding-top:10px;
+    border-top:1px solid var(--line-2,rgba(0,0,0,.08));
+}
+.dm-break-row{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:10px;
+    padding:4px 0;
+    font-size:12.5px;
+    color:var(--muted);
+}
+.dm-break-row em{
+    font-style:normal;
+    font-weight:600;
+    color:var(--text);
+    font-variant-numeric:tabular-nums;
+}
+.dm-break-actions{
+    display:flex;flex-wrap:wrap;gap:6px;
+    margin-top:10px;
+}
+.dm-badge{
+    padding:3px 9px;
+    border-radius:99px;
+    font-size:11px;
+    font-weight:600;
+    color:var(--muted);
+    background:rgba(140,140,150,.16);
+}
+.dm-badge.ok{color:#1e8e4a;background:rgba(52,199,89,.18)}
+html[data-theme="dark"] .dm-badge.ok{color:#5ed484;background:rgba(52,199,89,.22)}
+.dm-note{
+    font-size:12px;
+    line-height:1.55;
+    color:var(--muted);
+    margin:2px 0 10px;
+}
+
+/* ---------- 危险操作（图一底部红框） ---------- */
+.dm-danger{display:flex;gap:10px}
+.dm-dbtn{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+    padding:14px 8px;
+    border:1px solid rgba(255,59,48,.35);
+    border-radius:14px;
+    background:rgba(255,59,48,.07);
+    color:#ff3b30;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+    transition:background .15s ease,transform .12s ease;
+}
+.dm-dbtn:active{transform:scale(.97);background:rgba(255,59,48,.14)}
+.dm-dbtn b{font-size:13px;font-weight:700}
+.dm-dbtn i{font-style:normal;font-size:10.5px;color:var(--muted)}
+html[data-theme="dark"] .dm-dbtn{border-color:rgba(255,69,58,.45);color:#ff6961}
+
+/* ---------- 云端同步设置浮层（图二） ---------- */
+.oss-sheet{position:fixed;inset:0;z-index:9800;display:flex;align-items:flex-end;justify-content:center}
+.oss-mask{position:absolute;inset:0;background:rgba(15,23,42,.42);opacity:0;transition:opacity .22s ease}
+.oss-sheet.in .oss-mask{opacity:1}
+.oss-panel{
+    position:relative;
+    width:100%;
+    max-width:430px;
+    max-height:92vh;
+    display:flex;
+    flex-direction:column;
+    border-radius:26px 26px 0 0;
+    background:#fff;
+    box-shadow:0 -12px 44px rgba(15,23,42,.24);
+    transform:translateY(24px);
+    opacity:0;
+    transition:transform .26s cubic-bezier(.32,.72,0,1),opacity .2s ease;
+    overflow:hidden;
+}
+.oss-sheet.in .oss-panel{transform:translateY(0);opacity:1}
+html[data-theme="dark"] .oss-panel{background:#1c1c1e;box-shadow:0 -12px 44px rgba(0,0,0,.6)}
+.oss-hd{
+    flex:none;
+    display:flex;align-items:center;gap:9px;
+    padding:18px 18px 12px;
+}
+.oss-hd b{font-size:17px;font-weight:700;color:var(--ink)}
+.oss-ico{
+    width:34px;height:34px;
+    display:flex;align-items:center;justify-content:center;
+    border-radius:11px;
+    color:#fff;
+    background:linear-gradient(150deg,#3a9bf5,#1f6fd0);
+}
+.oss-bd{flex:1;min-height:0;overflow-y:auto;padding:4px 18px 14px;-webkit-overflow-scrolling:touch}
+.oss-help{
+    display:inline-block;
+    font-size:12px;
+    color:#3a9bf5;
+    text-decoration:none;
+    margin:2px 0 14px;
+}
+.oss-fld{display:block;margin-bottom:14px}
+.oss-fld > span{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:6px}
+.oss-fld input,
+.oss-fld select{
+    width:100%;
+    padding:11px 13px;
+    border:1px solid var(--line-2);
+    border-radius:12px;
+    background:var(--surface);
+    color:var(--ink);
+    font-size:15px;
+    font-family:inherit;
+    appearance:none;
+}
+.oss-fld input:focus,
+.oss-fld select:focus{outline:none;border-color:var(--accent)}
+.oss-fld select{
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238a8a8e' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 13px center;
+    padding-right:34px;
+}
+.oss-tip{display:block;font-style:normal;font-size:11px;color:var(--faint);margin-top:5px;line-height:1.5}
+.oss-acts{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.oss-act{
+    width:100%;
+    padding:11px 13px;
+    border:1px solid var(--line-2);
+    border-radius:12px;
+    background:var(--surface);
+    color:var(--ink);
+    font-size:13.5px;
+    font-family:inherit;
+    text-align:center;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+}
+.oss-act:active{background:rgba(140,140,150,.16)}
+.oss-act.danger{color:#ff3b30;border-color:rgba(255,59,48,.35);background:rgba(255,59,48,.07)}
+.oss-ft{
+    flex:none;
+    display:flex;
+    gap:10px;
+    padding:12px 18px calc(12px + env(safe-area-inset-bottom));
+    border-top:1px solid var(--line-2);
+    background:var(--surface);
+}
+.oss-btn{
+    flex:1;
+    padding:12px 10px;
+    border:1px solid var(--line-2);
+    border-radius:13px;
+    background:var(--surface);
+    color:var(--ink);
+    font-size:14px;
+    font-weight:600;
+    font-family:inherit;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+}
+.oss-btn:active{background:rgba(140,140,150,.16)}
+.oss-btn.ghost{flex:0 0 84px;color:var(--muted)}
+.oss-btn.primary{
+    flex:1.4;
+    border-color:transparent;
+    background:linear-gradient(150deg,#ff6b9a,#f2497f);
+    color:#fff;
+    box-shadow:0 4px 14px rgba(242,73,127,.3);
+}
